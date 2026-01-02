@@ -96,19 +96,19 @@ variable "microservices" {
 variable "asg_min_size" {
   description = "Minimum instances per microservice ASG"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "asg_desired_capacity" {
   description = "Desired instances per microservice ASG"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "asg_max_size" {
   description = "Maximum instances per microservice ASG"
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "cpu_target_utilization" {

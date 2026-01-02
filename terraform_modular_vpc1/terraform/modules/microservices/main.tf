@@ -22,23 +22,26 @@ apt-get install -y python3
 cat >/usr/local/bin/${each.key}.py <<'PY'
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
+import socket
 
 NAME = os.environ.get("SVC_NAME", "svc")
 PORT = int(os.environ.get("SVC_PORT", "8080"))
+HOSTNAME = socket.gethostname()
+IP = socket.gethostbyname(HOSTNAME)
 
 class H(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path.startswith("/health"):
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain")
-            self.end_headers()
-            self.wfile.write(b"ok")
-            return
-
         self.send_response(200)
         self.send_header("Content-Type", "text/plain")
         self.end_headers()
-        body = f"{NAME} responding on {PORT}\\npath={self.path}\\n"
+
+        body = f"""
+service={NAME}
+hostname={HOSTNAME}
+ip={IP}
+port={PORT}
+path={self.path}
+"""
         self.wfile.write(body.encode())
 
     def log_message(self, format, *args):
