@@ -28,7 +28,7 @@ module "nat_bastion" {
   source = "../../modules/nat_bastion"
 
   name_prefix              = local.name_prefix
-  ami_id                   = data.aws_ami.amazon_linux_2023.id
+  ami_id                   = data.aws_ami.debian_12.id
   nat_bastion_instance_type = var.nat_bastion_instance_type
   key_pair_name            = var.key_pair_name
   public_subnet_id         = module.network.public_subnet_id

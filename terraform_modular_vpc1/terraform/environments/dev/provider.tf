@@ -46,14 +46,14 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# Get Amazon Linux 2023 AMI x86_64 for NAT/Bastion
-data "aws_ami" "amazon_linux_2023" {
+# Get Debian 12 AMI for NAT/Bastion
+data "aws_ami" "debian_12" {
   most_recent = true
-  owners      = ["137112412989"] # Amazon
+  owners      = ["136693071363"] # Debian official
 
   filter {
     name   = "name"
-    values = ["al2023-ami-*-x86_64"]
+    values = ["debian-12-amd64-*"]
   }
 
   filter {
@@ -61,4 +61,5 @@ data "aws_ami" "amazon_linux_2023" {
     values = ["hvm"]
   }
 }
+
 

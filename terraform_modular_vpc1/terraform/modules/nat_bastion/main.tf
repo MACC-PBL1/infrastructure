@@ -19,24 +19,28 @@ resource "aws_instance" "nat_bastion" {
   associate_public_ip_address = true
   source_dest_check           = false
 
-  user_data = <<-EOF
+  user_data = <<EOF
     #!/bin/bash
     set -e
 
-    # Enable IP forwarding
-    sysctl -w net.ipv4.ip_forward=1
-    echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+    # Update system
+    apt-get update -y
+    DEBIAN_FRONTEND=noninteractive apt-get install -y iptables iptables-persistent
 
-    # Configure iptables for NAT (MASQUERADE)
-    IFACE=$(ip route | awk '/default/ {print $5; exit}')
+    # Enable IP forwarding permanently
+    echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-nat.conf
+    sysctl -p /etc/sysctl.d/99-nat.conf
+
+    # Detect outbound interface dynamically
+    IFACE=$(ip route | awk '/default/ {print $5}')
+
+    # Configure NAT
     iptables -t nat -A POSTROUTING -o $IFACE -j MASQUERADE
     iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
     iptables -A FORWARD -j ACCEPT
 
-    # Persist iptables rules (best effort)
-    yum install -y iptables-services || true
-    service iptables save || true
-    systemctl enable iptables || true
+    # Persist iptables rules
+    netfilter-persistent save
   EOF
 
   tags = {
