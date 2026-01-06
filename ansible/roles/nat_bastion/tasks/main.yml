@@ -1,0 +1,44 @@
+- name: Install NAT required packages
+  apt:
+    name:
+      - iptables
+      - iptables-persistent
+    state: present
+    update_cache: yes
+
+- name: Enable IPv4 forwarding permanently
+  copy:
+    dest: /etc/sysctl.d/99-nat.conf
+    content: |
+      net.ipv4.ip_forward=1
+  notify: Reload sysctl
+
+- name: Detect outbound interface
+  command: ip route
+  register: route_output
+  changed_when: false
+
+- name: Extract outbound interface name
+  set_fact:
+    nat_iface: "{{ route_output.stdout | regex_search('default.* dev (\\S+)', '\\1') }}"
+
+- name: Configure NAT masquerade
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    out_interface: "{{ nat_iface }}"
+    jump: MASQUERADE
+
+- name: Allow forwarding (established)
+  iptables:
+    chain: FORWARD
+    ctstate: RELATED,ESTABLISHED
+    jump: ACCEPT
+
+- name: Allow forwarding
+  iptables:
+    chain: FORWARD
+    jump: ACCEPT
+
+- name: Persist iptables rules
+  command: netfilter-persistent save

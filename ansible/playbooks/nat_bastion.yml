@@ -1,0 +1,6 @@
+- name: Configure NAT + Bastion host
+  hosts: localhost
+  become: true
+
+  roles:
+    - nat_bastion

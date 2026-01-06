@@ -23,24 +23,8 @@ resource "aws_instance" "nat_bastion" {
     #!/bin/bash
     set -e
 
-    # Update system
     apt-get update -y
-    DEBIAN_FRONTEND=noninteractive apt-get install -y iptables iptables-persistent
-
-    # Enable IP forwarding permanently
-    echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-nat.conf
-    sysctl -p /etc/sysctl.d/99-nat.conf
-
-    # Detect outbound interface dynamically
-    IFACE=$(ip route | awk '/default/ {print $5}')
-
-    # Configure NAT
-    iptables -t nat -A POSTROUTING -o $IFACE -j MASQUERADE
-    iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
-    iptables -A FORWARD -j ACCEPT
-
-    # Persist iptables rules
-    netfilter-persistent save
+    apt-get install -y python3
   EOF
 
   tags = {
