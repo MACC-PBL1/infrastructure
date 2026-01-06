@@ -20,7 +20,7 @@
 
 - name: Extract outbound interface name
   set_fact:
-    nat_iface: "{{ route_output.stdout | regex_search('default.* dev (\\S+)', '\\1') }}"
+    nat_iface: "{{ route_output.stdout | regex_search('default.* dev (\\S+)', '\\1') | first }}"
 
 - name: Configure NAT masquerade
   iptables:
