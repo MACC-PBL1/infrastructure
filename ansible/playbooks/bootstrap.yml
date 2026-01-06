@@ -1,0 +1,7 @@
+- name: Bootstrap microservice EC2
+  hosts: localhost
+  connection: local
+  become: true
+
+  roles:
+    - common
