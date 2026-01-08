@@ -21,7 +21,7 @@ module "security" {
 # EC2 - AZ1 Public
 # ============================================
 module "ec2_az1_public" {
-  source = "../../../modules/ec2"
+  source = "../../modules/ec2"
 
   ami      = var.ami_id
   sg_id    = module.security.micro_sg_id
@@ -46,7 +46,7 @@ module "ec2_az1_public" {
 # EC2 - AZ1 Private
 # ============================================
 module "ec2_az1_private" {
-  source = "../../../modules/ec2"
+  source = "../../modules/ec2"
 
   ami      = var.ami_id
   sg_id    = module.security.micro_sg_id
@@ -77,7 +77,7 @@ module "ec2_az1_private" {
 # EC2 - AZ2 Private
 # ============================================
 module "ec2_az2_private" {
-  source = "../../../modules/ec2"
+  source = "../../modules/ec2"
 
   ami      = var.ami_id
   sg_id    = module.security.micro_sg_id
@@ -108,7 +108,7 @@ module "ec2_az2_private" {
 # S3 Logs
 # ============================================
 module "s3_logs" {
-  source = "../../../modules/s3"
+  source = "../../modules/s3"
 
   bucket_name        = "${var.project_name}-logs"
   versioning_enabled = false
@@ -123,7 +123,7 @@ module "s3_logs" {
 # Kinesis Firehose - Honeypots
 # ============================================
 module "firehose_honeypots" {
-  source = "../../../modules/kinesis_firehose"
+  source = "../../modules/kinesis_firehose"
 
   stream_name    = "${var.project_name}-honeypots-stream"
   role_arn       = var.firehose_role_arn
@@ -147,7 +147,7 @@ module "firehose_honeypots" {
 # Kinesis Firehose - Microservices
 # ============================================
 module "firehose_microservices" {
-  source = "../../../modules/kinesis_firehose"
+  source = "../../modules/kinesis_firehose"
 
   stream_name    = "${var.project_name}-microservices-stream"
   role_arn       = var.firehose_role_arn
@@ -171,7 +171,7 @@ module "firehose_microservices" {
 # DynamoDB
 # ============================================
 module "dynamodb" {
-  source = "../../../modules/dynamodb"
+  source = "../../modules/dynamodb"
 
   table_name   = "${var.project_name}-table"
   billing_mode = var.dynamodb_billing_mode

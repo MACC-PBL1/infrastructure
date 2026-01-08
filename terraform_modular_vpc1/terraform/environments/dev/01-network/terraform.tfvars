@@ -1,19 +1,25 @@
-output "vpc_id" {
-  value = module.network.vpc_id
-}
+# =========================
+# Global
+# =========================
+aws_region = "us-east-1"
 
-output "vpc_cidr" {
-  value = module.network.vpc_cidr
-}
+# Prefijo de nombres (antes: project_name + username + env)
+name_prefix = "pi-infra-development-user"
 
-output "public_subnet_id" {
-  value = module.network.public_subnet_id
-}
+# =========================
+# VPC
+# =========================
+vpc_cidr = "10.0.0.0/16"
 
-output "private_subnet_ids" {
-  value = module.network.private_subnet_ids
-}
+# =========================
+# Subnets
+# =========================
+public_subnet_1_cidr  = "10.0.1.0/24"
+private_subnet_1_cidr = "10.0.10.0/24"
+private_subnet_2_cidr = "10.0.11.0/24"
 
-output "private_route_table_id" {
-  value = module.network.private_route_table_id
-}
+# =========================
+# Availability Zones
+# =========================
+az1 = "us-east-1a"
+az2 = "us-east-1b"
