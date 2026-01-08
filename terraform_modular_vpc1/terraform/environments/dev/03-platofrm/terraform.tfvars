@@ -16,7 +16,7 @@ cpu_target_utilization = 60
 
 db_name            = "appdb"
 db_master_username = "admin"
-db_master_password = "admin"
+db_master_password = "admin123"
 
 # microservices (si quieres override, si no puedes omitirlo)
 # microservices = {
@@ -24,3 +24,4 @@ db_master_password = "admin"
 #   svc2 = { port = 8082, path_pattern = "/svc2/*" }
 #   svc3 = { port = 8083, path_pattern = "/svc3/*" }
 # }
+peer_vpc_cidr = "10.1.0.0/16"

@@ -6,3 +6,8 @@ variable "microservices" {
   type = any
 }
 variable "allowed_ssh_cidr" { type = string }
+variable "peer_vpc_cidr" {
+  type        = string
+  description = "CIDR of peer VPC (optional)"
+  default     = null
+}

@@ -127,3 +127,9 @@ variable "common_tags" {
     Team        = "MACC"
   }
 }
+
+variable "peer_vpc_cidr" {
+  description = "CIDR block of the peer VPC"
+  type        = string
+}
+

@@ -13,7 +13,7 @@ resource "aws_security_group" "nat_bastion" {
   }
 }
 
-# SSH from allowed CIDRs (one rule per CIDR)
+# SSH from allowed CIDRs
 resource "aws_vpc_security_group_ingress_rule" "nat_bastion_ssh" {
   security_group_id = aws_security_group.nat_bastion.id
   cidr_ipv4         = var.allowed_ssh_cidr
@@ -26,8 +26,7 @@ resource "aws_vpc_security_group_ingress_rule" "nat_bastion_ssh" {
   }
 }
 
-
-# Allow all from VPC (so private instances can use it as NAT)
+# Allow all from own VPC (NAT usage)
 resource "aws_vpc_security_group_ingress_rule" "nat_from_vpc_all" {
   security_group_id = aws_security_group.nat_bastion.id
 
@@ -35,8 +34,23 @@ resource "aws_vpc_security_group_ingress_rule" "nat_from_vpc_all" {
   ip_protocol = "-1"
   cidr_ipv4   = var.vpc_cidr
 
-    tags = {
+  tags = {
     Name = "VPC-ALL"
+  }
+}
+
+# >>> PEERING <<< Allow all from peer VPC (optional)
+resource "aws_vpc_security_group_ingress_rule" "nat_from_peer_vpc_all" {
+  count = var.peer_vpc_cidr == null ? 0 : 1
+
+  security_group_id = aws_security_group.nat_bastion.id
+
+  description = "All traffic from peer VPC"
+  ip_protocol = "-1"
+  cidr_ipv4   = var.peer_vpc_cidr
+
+  tags = {
+    Name = "PEER-VPC-ALL"
   }
 }
 
@@ -60,11 +74,11 @@ resource "aws_security_group" "alb" {
   }
 }
 
-# HTTP from within VPC (VPC Link ENIs live in private subnets)
+# HTTP from own VPC (API Gateway VPC Link)
 resource "aws_vpc_security_group_ingress_rule" "alb_http_from_vpc" {
   security_group_id = aws_security_group.alb.id
 
-  description = "HTTP from VPC (API GW VPC Link)"
+  description = "HTTP from VPC"
   from_port   = 80
   to_port     = 80
   ip_protocol = "tcp"
@@ -75,7 +89,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_http_from_vpc" {
   }
 }
 
-# Egress all (to targets)
+# Egress all
 resource "aws_vpc_security_group_egress_rule" "alb_egress" {
   security_group_id = aws_security_group.alb.id
 
@@ -95,7 +109,7 @@ resource "aws_security_group" "microservices" {
   }
 }
 
-# SSH only from NAT/Bastion SG (bastion -> private)
+# SSH only from NAT/Bastion
 resource "aws_vpc_security_group_ingress_rule" "ms_ssh_from_bastion" {
   security_group_id            = aws_security_group.microservices.id
   referenced_security_group_id = aws_security_group.nat_bastion.id
@@ -110,7 +124,7 @@ resource "aws_vpc_security_group_ingress_rule" "ms_ssh_from_bastion" {
   }
 }
 
-# App ports from ALB SG
+# App ports from ALB
 resource "aws_vpc_security_group_ingress_rule" "ms_from_alb_ports" {
   for_each = var.microservices
 
@@ -127,7 +141,22 @@ resource "aws_vpc_security_group_ingress_rule" "ms_from_alb_ports" {
   }
 }
 
-# Egress all (to RDS + Internet via NAT)
+# >>> PEERING <<< Allow all traffic from peer VPC
+resource "aws_vpc_security_group_ingress_rule" "ms_from_peer_vpc" {
+  count = var.peer_vpc_cidr == null ? 0 : 1
+
+  security_group_id = aws_security_group.microservices.id
+
+  description = "All traffic from peer VPC"
+  ip_protocol = "-1"
+  cidr_ipv4   = var.peer_vpc_cidr
+
+  tags = {
+    Name = "PEER-VPC-ALL"
+  }
+}
+
+# Egress all (internet via NAT + RDS)
 resource "aws_vpc_security_group_egress_rule" "ms_egress" {
   security_group_id = aws_security_group.microservices.id
 
@@ -147,6 +176,7 @@ resource "aws_security_group" "rds" {
   }
 }
 
+# MySQL only from microservices
 resource "aws_vpc_security_group_ingress_rule" "rds_from_ms" {
   security_group_id            = aws_security_group.rds.id
   referenced_security_group_id = aws_security_group.microservices.id
@@ -161,6 +191,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_ms" {
   }
 }
 
+# Egress all
 resource "aws_vpc_security_group_egress_rule" "rds_egress" {
   security_group_id = aws_security_group.rds.id
 

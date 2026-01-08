@@ -85,9 +85,11 @@ module "security_groups" {
   name_prefix      = local.name_prefix
   vpc_id           = data.terraform_remote_state.network.outputs.vpc_id
   vpc_cidr         = data.terraform_remote_state.network.outputs.vpc_cidr
+  peer_vpc_cidr    = var.peer_vpc_cidr   # 👈 AÑADIR
   microservices    = var.microservices
   allowed_ssh_cidr = var.allowed_ssh_cidr
 }
+
 
 # =========================
 # NAT + Bastion
