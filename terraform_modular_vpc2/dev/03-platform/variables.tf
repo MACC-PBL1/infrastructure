@@ -23,3 +23,15 @@ variable "firehose_role_arn" {
 variable "dynamodb_billing_mode" {}
 variable "dynamodb_read_capacity" {}
 variable "dynamodb_write_capacity" {}
+
+variable "region" {
+  description = "AWS region for resources"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "profile" {
+  description = "AWS CLI profile to use"
+  type        = string
+  default     = "default"
+}
