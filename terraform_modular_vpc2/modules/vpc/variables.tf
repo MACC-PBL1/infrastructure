@@ -18,10 +18,10 @@ variable "azs" {
 }
 
 variable "public_subnet_cidrs" {
-  description = "CIDR blocks for public subnets (2 required)"
+  description = "CIDR blocks for public subnets (1 required)"
   type        = list(string)
   validation {
-    condition     = length(var.public_subnet_cidrs) == 2
+    condition     = length(var.public_subnet_cidrs) == 1
     error_message = "Exactly 2 public subnet CIDRs must be provided."
   }
 }
