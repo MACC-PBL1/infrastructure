@@ -35,3 +35,8 @@ variable "profile" {
   type        = string
   default     = "default"
 }
+
+variable "peer_vpc_cidr" {
+  description = "CIDR of bastion VPC"
+  type        = string
+}

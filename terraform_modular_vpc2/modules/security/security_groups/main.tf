@@ -56,11 +56,19 @@ resource "aws_security_group" "micro_sg" {
     vpc_id = data.aws_vpc.selected.id
 
     ingress {
-        description = "SSH from bastion"
-        from_port   = 22
-        to_port     = 22
-        protocol    = "tcp"
-        security_groups = [aws_security_group.bastion_sg.id]
+    description = "SSH from bastion VPC (via peering)"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.peer_vpc_cidr]
+    }
+
+    ingress {
+    description = "All traffic from peer VPC"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = [var.peer_vpc_cidr]
     }
 
     ingress {

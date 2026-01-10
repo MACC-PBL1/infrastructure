@@ -15,6 +15,7 @@ module "security" {
   name             = var.project_name
   vpc_id           = data.terraform_remote_state.network.outputs.vpc_id
   allowed_ssh_cidr = var.allowed_ssh_cidr
+  peer_vpc_cidr    = var.peer_vpc_cidr
 }
 
 # ============================================

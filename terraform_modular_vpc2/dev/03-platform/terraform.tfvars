@@ -23,3 +23,4 @@ firehose_role_arn = "arn:aws:iam::975049933544:role/LabRole"
 dynamodb_billing_mode = "PAY_PER_REQUEST"
 dynamodb_read_capacity  = 5
 dynamodb_write_capacity = 5
+peer_vpc_cidr = "10.0.0.0/16"
