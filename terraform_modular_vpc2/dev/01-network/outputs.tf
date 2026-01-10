@@ -14,6 +14,6 @@ output "private_subnet_ids" {
   value = module.vpc.private_subnet_ids
 }
 
-output "private_route_table_id" {
-  value = module.vpc.private_route_table_id
+output "private_route_table_ids" {
+  value = module.vpc.private_route_table_ids
 }

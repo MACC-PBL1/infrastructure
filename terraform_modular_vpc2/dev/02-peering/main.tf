@@ -14,8 +14,12 @@ resource "aws_vpc_peering_connection_accepter" "from_peer" {
   }
 }
 
-resource "aws_route" "to_peer" {
-  route_table_id            = data.terraform_remote_state.network.outputs.private_route_table_id
+resource "aws_route" "to_peer_private" {
+  for_each = toset(
+    data.terraform_remote_state.network.outputs.private_route_table_ids
+  )
+
+  route_table_id            = each.value
   destination_cidr_block    = var.peer_vpc_cidr
   vpc_peering_connection_id = var.peer_vpc_peering_id
 }
