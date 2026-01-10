@@ -22,12 +22,12 @@ data "terraform_remote_state" "network" {
 
 # Optional: only to force dependency / visibility of peering outputs.
 # (Not strictly required if 03-platform doesn't need peering id directly.)
-data "terraform_remote_state" "peering" {
-  backend = "local"
-  config = {
-    path = "../02-peering/terraform.tfstate"
-  }
-}
+#data "terraform_remote_state" "peering" {
+#  backend = "local"
+#  config = {
+#    path = "../02-peering/terraform.tfstate"
+#  }
+#}
 
 # =========================
 # AMIs

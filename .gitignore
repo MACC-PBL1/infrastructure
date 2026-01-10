@@ -1,0 +1,40 @@
+############################################
+# Terraform
+############################################
+
+# Directorios de trabajo de Terraform
+**/.terraform/*
+**/.terraform.lock.hcl
+
+# State files
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/terraform.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+############################################
+# Ansible (opcional pero recomendable)
+############################################
+
+# Retry files
+*.retry
+
+############################################
+# OS / Editor
+############################################
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# VS Code
+.vscode/
