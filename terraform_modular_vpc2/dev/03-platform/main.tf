@@ -10,7 +10,7 @@ data "terraform_remote_state" "network" {
 # Security Groups
 # ============================================
 module "security" {
-  source = "../../../modules/security/security_groups"
+  source = "../../modules/security/security_groups"
 
   name             = var.project_name
   vpc_id           = data.terraform_remote_state.network.outputs.vpc_id

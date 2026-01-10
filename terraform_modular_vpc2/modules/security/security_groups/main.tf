@@ -72,6 +72,14 @@ resource "aws_security_group" "micro_sg" {
     }
 
     ingress {
+        description = "ICMP from peer VPC (peering)"
+        from_port   = -1
+        to_port     = -1
+        protocol    = "icmp"
+        cidr_blocks = [var.peer_vpc_cidr]
+    }
+
+    ingress {
         description = "VPC internal (all TCP)"
         from_port   = 0
         to_port     = 65535

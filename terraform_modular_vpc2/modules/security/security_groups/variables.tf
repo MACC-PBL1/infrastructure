@@ -15,4 +15,5 @@ variable "allowed_ssh_cidr" {
 variable "peer_vpc_cidr" {
   description = "CIDR of peer VPC (bastion VPC)"
   type        = string
+  default     = "10.0.0.0/16"
 }
