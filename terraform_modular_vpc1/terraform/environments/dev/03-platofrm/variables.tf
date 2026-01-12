@@ -60,9 +60,18 @@ variable "microservices" {
     path_pattern = string
   }))
   default = {
-    svc1 = { port = 8081, path_pattern = "/svc1/*" }
-    svc2 = { port = 8082, path_pattern = "/svc2/*" }
-    svc3 = { port = 8083, path_pattern = "/svc3/*" }
+    order-warehouse-microservice = {
+        port = 8081
+        path_pattern = "/order/*"
+      }
+      payment-delivery-microservice = {
+        port = 8082
+        path_pattern = "/payment/*"
+      }
+      machines-microservice = {
+        port = 8083
+        path_pattern = "/machines/*"
+      }
   }
 }
 
@@ -133,3 +142,11 @@ variable "peer_vpc_cidr" {
   type        = string
 }
 
+# ============ ALB ============== 
+variable "auth_instance_ids" {
+  type = list(string)
+}
+
+variable "logs_instance_ids" {
+  type = list(string)
+}

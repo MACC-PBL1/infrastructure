@@ -118,6 +118,8 @@ module "alb" {
   private_subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids
   alb_sg_id          = module.security_groups.alb_sg_id
   microservices      = var.microservices
+  auth_instance_ids = var.auth_instance_ids
+  logs_instance_ids = var.logs_instance_ids
 }
 
 # =========================

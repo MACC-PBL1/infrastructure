@@ -18,10 +18,14 @@ db_name            = "appdb"
 db_master_username = "admin"
 db_master_password = "admin123"
 
-# microservices (si quieres override, si no puedes omitirlo)
-# microservices = {
-#   svc1 = { port = 8081, path_pattern = "/svc1/*" }
-#   svc2 = { port = 8082, path_pattern = "/svc2/*" }
-#   svc3 = { port = 8083, path_pattern = "/svc3/*" }
-# }
 peer_vpc_cidr = "10.1.0.0/16"
+
+auth_instance_ids = [
+  "i-0aaa1111",
+  "i-0bbb2222"
+]
+
+logs_instance_ids = [
+  "i-0ccc3333",
+  "i-0ddd4444"
+]

@@ -30,10 +30,21 @@ resource "aws_lb_listener" "http" {
 }
 
 # One target group per microservice
+locals {
+  tg_base_names = {
+    for k, v in var.microservices :
+    k => substr(
+      replace("${var.name_prefix}-${k}", "/[^a-zA-Z0-9-]/", ""),
+      0,
+      28
+    )
+  }
+}
+
 resource "aws_lb_target_group" "ms" {
   for_each = var.microservices
 
-  name        = substr("${var.name_prefix}-${each.key}-tg", 0, 32)
+  name        = "${local.tg_base_names[each.key]}-tg"
   port        = each.value.port
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -51,6 +62,46 @@ resource "aws_lb_target_group" "ms" {
   tags = {
     Name = "${var.name_prefix}-${each.key}-tg"
   }
+}
+
+resource "aws_lb_target_group" "auth" {
+  name        = "auth-peer-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "instance"
+
+  health_check {
+    path = "/health"
+  }
+}
+
+resource "aws_lb_target_group" "logs" {
+  name        = "logs-peer-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "instance"
+
+  health_check {
+    path = "/health"
+  }
+}
+
+resource "aws_lb_target_group_attachment" "auth_instances" {
+  for_each = toset(var.auth_instance_ids)
+
+  target_group_arn = aws_lb_target_group.auth.arn
+  target_id        = each.value
+  port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "logs_instances" {
+  for_each = toset(var.logs_instance_ids)
+
+  target_group_arn = aws_lb_target_group.logs.arn
+  target_id        = each.value
+  port             = 80
 }
 
 # Listener rules (path-based routing)
