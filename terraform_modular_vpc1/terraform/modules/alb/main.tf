@@ -69,7 +69,7 @@ resource "aws_lb_target_group" "auth" {
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
-  target_type = "instance"
+  target_type = "ip"
 
   health_check {
     path = "/health"
@@ -81,7 +81,7 @@ resource "aws_lb_target_group" "logs" {
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
-  target_type = "instance"
+  target_type = "ip"
 
   health_check {
     path = "/health"
@@ -89,19 +89,23 @@ resource "aws_lb_target_group" "logs" {
 }
 
 resource "aws_lb_target_group_attachment" "auth_instances" {
-  for_each = toset(var.auth_instance_ids)
+  for_each = toset(var.auth_instance_ips)
 
   target_group_arn = aws_lb_target_group.auth.arn
-  target_id        = each.value
+  target_id        = each.value   # IP PRIVADA
   port             = 80
+
+  availability_zone = "all"
 }
 
 resource "aws_lb_target_group_attachment" "logs_instances" {
-  for_each = toset(var.logs_instance_ids)
+  for_each = toset(var.logs_instance_ips)
 
   target_group_arn = aws_lb_target_group.logs.arn
-  target_id        = each.value
+  target_id        = each.value   # IP PRIVADA
   port             = 80
+
+  availability_zone = "all"
 }
 
 # Listener rules (path-based routing)
@@ -119,6 +123,38 @@ resource "aws_lb_listener_rule" "ms" {
   condition {
     path_pattern {
       values = [each.value.path_pattern]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "auth" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 5
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.auth.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/auth/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "logs" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 6
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.logs.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/logs/*"]
     }
   }
 }

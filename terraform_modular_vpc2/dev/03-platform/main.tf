@@ -70,9 +70,68 @@ module "ec2_az1_private" {
       instance_type = var.instance_type_private
       subnet_id     = data.terraform_remote_state.network.outputs.private_subnet_ids[0]
       public_ip     = false
+
+      user_data = <<EOF
+#!/bin/bash
+set -e
+
+apt-get update -y
+apt-get install -y python3
+
+cat >/usr/local/bin/auth_logs.py <<'PY'
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import socket
+
+HOSTNAME = socket.gethostname()
+IP = socket.gethostbyname(HOSTNAME)
+
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+
+        if self.path.startswith("/auth"):
+            svc = "auth"
+        elif self.path.startswith("/logs"):
+            svc = "logs"
+        else:
+            svc = "unknown"
+
+        self.wfile.write(f"""
+service={svc}
+hostname={HOSTNAME}
+ip={IP}
+path={self.path}
+""".encode())
+
+    def log_message(self, format, *args):
+        return
+
+HTTPServer(("0.0.0.0", 80), H).serve_forever()
+PY
+
+cat >/etc/systemd/system/auth-logs.service <<SERVICE
+[Unit]
+Description=Auth and Logs test service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/auth_logs.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+systemctl daemon-reload
+systemctl enable auth-logs
+systemctl start auth-logs
+EOF
     }
   }
 }
+
 
 # ============================================
 # EC2 - AZ2 Private
@@ -101,9 +160,68 @@ module "ec2_az2_private" {
       instance_type = var.instance_type_private
       subnet_id     = data.terraform_remote_state.network.outputs.private_subnet_ids[1]
       public_ip     = false
+
+      user_data = <<EOF
+#!/bin/bash
+set -e
+
+apt-get update -y
+apt-get install -y python3
+
+cat >/usr/local/bin/auth_logs.py <<'PY'
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import socket
+
+HOSTNAME = socket.gethostname()
+IP = socket.gethostbyname(HOSTNAME)
+
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+
+        if self.path.startswith("/auth"):
+            svc = "auth"
+        elif self.path.startswith("/logs"):
+            svc = "logs"
+        else:
+            svc = "unknown"
+
+        self.wfile.write(f"""
+service={svc}
+hostname={HOSTNAME}
+ip={IP}
+path={self.path}
+""".encode())
+
+    def log_message(self, format, *args):
+        return
+
+HTTPServer(("0.0.0.0", 80), H).serve_forever()
+PY
+
+cat >/etc/systemd/system/auth-logs.service <<SERVICE
+[Unit]
+Description=Auth and Logs test service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/auth_logs.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+systemctl daemon-reload
+systemctl enable auth-logs
+systemctl start auth-logs
+EOF
     }
   }
 }
+
 
 # ============================================
 # S3 Logs
