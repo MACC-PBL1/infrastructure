@@ -66,7 +66,7 @@ resource "aws_lb_target_group" "ms" {
 
 resource "aws_lb_target_group" "auth" {
   name        = "auth-peer-tg"
-  port        = 80
+  port        = 8080
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
@@ -78,7 +78,7 @@ resource "aws_lb_target_group" "auth" {
 
 resource "aws_lb_target_group" "logs" {
   name        = "logs-peer-tg"
-  port        = 80
+  port        = 8080
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
@@ -93,7 +93,7 @@ resource "aws_lb_target_group_attachment" "auth_instances" {
 
   target_group_arn = aws_lb_target_group.auth.arn
   target_id        = each.value   # IP PRIVADA
-  port             = 80
+  port             = 8080
 
   availability_zone = "all"
 }

@@ -4,6 +4,7 @@ variable "instances" {
         subnet_id     = string
         public_ip     = bool
         private_ip    = optional(string)
+        user_data     = optional(string)
     }))
 }
 

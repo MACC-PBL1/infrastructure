@@ -115,7 +115,7 @@ path={self.path}
     def log_message(self, format, *args):
         return
 
-HTTPServer(("0.0.0.0", 80), H).serve_forever()
+HTTPServer(("0.0.0.0", 8080), H).serve_forever()
 PY
 
 cat >/etc/systemd/system/auth-logs.service <<SERVICE
@@ -212,7 +212,7 @@ path={self.path}
     def log_message(self, format, *args):
         return
 
-HTTPServer(("0.0.0.0", 80), H).serve_forever()
+HTTPServer(("0.0.0.0", 8080), H).serve_forever()
 PY
 
 cat >/etc/systemd/system/auth-logs.service <<SERVICE
