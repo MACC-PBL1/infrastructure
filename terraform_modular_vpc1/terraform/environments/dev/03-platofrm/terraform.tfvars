@@ -20,12 +20,12 @@ db_master_password = "admin123"
 
 peer_vpc_cidr = "10.1.0.0/16"
 
-auth_instance_ids = [
-  "i-0aaa1111",
-  "i-0bbb2222"
+auth_instance_ips = [
+  "10.1.11.30",
+  "10.1.12.141"
 ]
 
-logs_instance_ids = [
-  "i-0ccc3333",
-  "i-0ddd4444"
+logs_instance_ips = [
+  "10.1.11.30",
+  "10.1.12.141"
 ]

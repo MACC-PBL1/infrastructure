@@ -143,10 +143,10 @@ variable "peer_vpc_cidr" {
 }
 
 # ============ ALB ============== 
-variable "auth_instance_ids" {
+variable "auth_instance_ips" {
   type = list(string)
 }
 
-variable "logs_instance_ids" {
+variable "logs_instance_ips" {
   type = list(string)
 }
