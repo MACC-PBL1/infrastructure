@@ -77,7 +77,7 @@ EOF
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "${var.name_prefix}-${each.key}"
+      Name = each.key
       Role = "microservice"
       Svc  = each.key
     }
@@ -108,7 +108,7 @@ resource "aws_autoscaling_group" "ms" {
 
   tag {
     key                 = "Name"
-    value               = "${var.name_prefix}-${each.key}"
+    value               = each.key
     propagate_at_launch = true
   }
 }
