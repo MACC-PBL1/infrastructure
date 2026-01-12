@@ -98,3 +98,32 @@ resource "aws_security_group" "micro_sg" {
         Name = "${var.name}-micro-sg"
     }
 }
+
+# ============================================
+# CROSS-VPC: Permitir tráfico desde VPC1 ALB
+# ============================================
+
+resource "aws_vpc_security_group_ingress_rule" "micro_from_vpc1_alb_8080" {
+  security_group_id = aws_security_group.micro_sg.id
+
+  description = "Allow traffic from VPC1 ALB - Port 8080"
+  from_port   = 8080
+  to_port     = 8080
+  ip_protocol = "tcp"
+  cidr_ipv4   = "10.0.0.0/16"  # CIDR de VPC1
+
+  tags = {
+    Name = "FROM-VPC1-ALB-8080"
+  }
+}
+
+# Si tus microservicios usan otros puertos, agrégalos:
+# resource "aws_vpc_security_group_ingress_rule" "micro_from_vpc1_alb_8081" {
+#   security_group_id = aws_security_group.micro_sg.id
+#   description = "Allow traffic from VPC1 ALB - Port 8081"
+#   from_port   = 8081
+#   to_port     = 8081
+#   ip_protocol = "tcp"
+#   cidr_ipv4   = "10.0.0.0/16"
+#   tags = { Name = "FROM-VPC1-ALB-8081" }
+# }
