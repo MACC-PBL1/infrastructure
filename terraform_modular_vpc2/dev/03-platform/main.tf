@@ -87,16 +87,23 @@ IP = socket.gethostbyname(HOSTNAME)
 
 class H(BaseHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain")
-        self.end_headers()
+        if self.path == "/health":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK")
+            return
 
+        # Lógica normal del microservicio
         if self.path.startswith("/auth"):
             svc = "auth"
         elif self.path.startswith("/logs"):
             svc = "logs"
         else:
             svc = "unknown"
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
 
         self.wfile.write(f"""
 service={svc}
@@ -177,16 +184,23 @@ IP = socket.gethostbyname(HOSTNAME)
 
 class H(BaseHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain")
-        self.end_headers()
+        if self.path == "/health":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK")
+            return
 
+        # Lógica normal del microservicio
         if self.path.startswith("/auth"):
             svc = "auth"
         elif self.path.startswith("/logs"):
             svc = "logs"
         else:
             svc = "unknown"
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
 
         self.wfile.write(f"""
 service={svc}
