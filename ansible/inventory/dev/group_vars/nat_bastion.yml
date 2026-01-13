@@ -1,0 +1,10 @@
+# Zeek
+zeek_interface: enX0
+zeek_logs_dir: /home/admin/zeek-logs
+
+# AWS
+aws_region: us-east-1
+
+# Firehose streams
+firehose_zeek_name: pi-infra-development-user-zeek-firehose
+firehose_zeekflowmeter_name: pi-infra-development-user-zeekflowmeter-firehose

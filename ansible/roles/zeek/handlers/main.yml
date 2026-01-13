@@ -1,0 +1,3 @@
+---
+- name: Restart Zeek
+  command: docker exec zeek zeekctl deploy

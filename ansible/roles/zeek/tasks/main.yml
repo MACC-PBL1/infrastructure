@@ -1,0 +1,61 @@
+---
+- name: Create Zeek directories on host
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: admin
+    group: admin
+    mode: "0755"
+  loop:
+    - "{{ zeek_logs_dir }}"
+    - "/home/admin/zeek-zkg"
+
+- name: Run Zeek Docker container (persistent zkg)
+  docker_container:
+    name: zeek
+    image: zeek/zeek:6.0.0
+    state: started
+    restart_policy: unless-stopped
+    network_mode: host
+    capabilities:
+      - NET_ADMIN
+    volumes:
+      - "{{ zeek_logs_dir }}:/usr/local/zeek/spool"
+      - "/home/admin/zeek-zkg:/usr/local/zeek/spool/installed-scripts-do-not-touch"
+    command: /bin/bash
+    tty: yes
+    detach: yes
+
+- name: Install Zeek FlowMeter via zkg
+  shell: docker exec zeek zkg install --force https://github.com/zeek-flowmeter/zeek-flowmeter
+  args:
+    creates: "/home/admin/zeek-zkg/packages/zeek-flowmeter"
+
+- name: Run zkg autoconfig (REQUIRED)
+  shell: docker exec zeek zkg autoconfig --force
+
+- name: Create local.zeek on host (CORRECT)
+  copy:
+    dest: /tmp/local.zeek
+    content: |
+      @load policy/tuning/json-logs
+      @load packages/zeek-flowmeter
+  notify: Restart Zeek
+
+- name: Copy local.zeek into container
+  shell: docker cp /tmp/local.zeek zeek:/usr/local/zeek/share/zeek/site/local.zeek
+  notify: Restart Zeek
+
+- name: Create node.cfg on host
+  copy:
+    dest: /tmp/node.cfg
+    content: |
+      [zeek]
+      type=standalone
+      host=localhost
+      interface={{ zeek_interface }}
+  notify: Restart Zeek
+
+- name: Copy node.cfg into container
+  shell: docker cp /tmp/node.cfg zeek:/usr/local/zeek/etc/node.cfg
+  notify: Restart Zeek

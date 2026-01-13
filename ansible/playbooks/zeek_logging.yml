@@ -1,0 +1,10 @@
+---
+- name: Install Zeek, ZeekFlowMeter and Fluent Bit on NAT Bastion
+  hosts: nat_bastion
+  become: true
+
+  roles:
+    - common
+    - docker
+    - zeek
+    - fluentbit
