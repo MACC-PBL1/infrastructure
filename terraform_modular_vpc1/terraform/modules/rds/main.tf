@@ -3,15 +3,15 @@
 ###############################################
 
 #Lee desde Parameter Store 
-data "aws_ssm_parameter" "db_password" {
-  name            = "/popbl-grupo1/dev/rds/master_password"
-  with_decryption = true
-}
+#data "aws_ssm_parameter" "db_password" {
+#  name            = "/popbl-grupo1/dev/rds/master_password"
+#  with_decryption = true
+#}
 
 #IMPORTANTE: Crear el secreto PRIMERO
 #Antes de hacer terraform apply, el compañero debe crear el secreto:
 #bash# El compañero ejecuta esto UNA SOLA VEZ:
-#aws ssm put-parameter \
+# aws ssm put-parameter \
 #  --name "/popbl-grupo1/dev/rds/master_password" \
 #  --value "password" \
 #  --type "SecureString" \
@@ -35,7 +35,7 @@ resource "aws_rds_cluster" "aurora" {
   engine_mode             = "provisioned"
   database_name           = var.db_name
   master_username         = var.db_master_username
-  master_password         = data.aws_ssm_parameter.db_password.value 
+  master_password         = "admin123" #data.aws_ssm_parameter.db_password.value 
   db_subnet_group_name    = aws_db_subnet_group.rds.name
   vpc_security_group_ids  = [var.rds_sg_id]
   backup_retention_period = 1

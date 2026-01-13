@@ -19,13 +19,16 @@ resource "aws_instance" "nat_bastion" {
   associate_public_ip_address = true
   source_dest_check           = false
 
-  user_data = <<EOF
-    #!/bin/bash
-    set -e
+  # 🔑 IAM ROLE FOR FLUENT BIT / FIREHOSE
+  iam_instance_profile = "LabInstanceProfile"
 
-    apt-get update -y
-    apt-get install -y python3
-  EOF
+  user_data = <<EOF
+#!/bin/bash
+set -e
+
+apt-get update -y
+apt-get install -y python3
+EOF
 
   tags = {
     Name = "${var.name_prefix}-nat-bastion"
