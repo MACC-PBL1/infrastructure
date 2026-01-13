@@ -29,3 +29,4 @@ logs_instance_ips = [
   "10.1.11.224",
   "10.1.12.61"
 ]
+lab_role_arn = "arn:aws:iam::512411987939:role/LabRole"

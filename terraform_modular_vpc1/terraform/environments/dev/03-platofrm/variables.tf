@@ -150,3 +150,8 @@ variable "auth_instance_ips" {
 variable "logs_instance_ips" {
   type = list(string)
 }
+
+variable "lab_role_arn" {
+  description = "ARN del LabRole reutilizado por Firehose"
+  type        = string
+}
