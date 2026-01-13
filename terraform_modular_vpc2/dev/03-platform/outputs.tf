@@ -83,6 +83,12 @@ output "secrets_parameter_arns" {
   sensitive   = true
 }
 
+output "secrets_parameter_names" {
+  description = "Names of stored secrets (not sensitive, just paths)"
+  value       = module.secrets.parameter_names
+}
+
+
 output "secrets_count" {
   description = "Number of secrets stored"
   value       = length(module.secrets.parameter_names)

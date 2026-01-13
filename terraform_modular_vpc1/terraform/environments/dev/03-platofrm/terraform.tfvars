@@ -16,7 +16,6 @@ cpu_target_utilization = 60
 
 db_name            = "appdb"
 db_master_username = "admin"
-db_master_password = "admin123"
 
 peer_vpc_cidr = "10.1.0.0/16"
 

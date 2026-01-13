@@ -8,7 +8,7 @@ resource "aws_ssm_parameter" "secrets" {
 
   name        = each.key
   description = each.value.description
-  type        = "SecureString"  # Encriptado con KMS por defecto
+  type        = "SecureString"
   value       = each.value.value
 
   tags = merge(
