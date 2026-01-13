@@ -103,7 +103,7 @@ resource "aws_lb_target_group_attachment" "logs_instances" {
 
   target_group_arn = aws_lb_target_group.logs.arn
   target_id        = each.value   # IP PRIVADA
-  port             = 80
+  port             = 8080
 
   availability_zone = "all"
 }
