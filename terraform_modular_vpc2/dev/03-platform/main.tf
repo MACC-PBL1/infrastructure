@@ -322,3 +322,65 @@ module "dynamodb" {
     { Name = "${var.project_name}-dynamodb" }
   )
 }
+
+# ============================================
+# Secrets Manager (SecOps Nivel 1)
+# ============================================
+module "secrets" {
+  source = "../../modules/secrets"
+
+  secrets = {
+    # DynamoDB
+    "/popbl-grupo1/dev/dynamodb/table_name" = {
+      description = "DynamoDB table name for event storage"
+      value       = module.dynamodb.table_name
+    }
+    
+    # S3 Logs
+    "/popbl-grupo1/dev/s3/logs_bucket_name" = {
+      description = "S3 bucket name for logs storage"
+      value       = module.s3_logs.bucket_name
+    }
+    
+    # Kinesis Firehose Streams
+    "/popbl-grupo1/dev/firehose/honeypots_stream" = {
+      description = "Kinesis Firehose stream name for honeypots logs"
+      value       = module.firehose_honeypots.stream_name
+    }
+    "/popbl-grupo1/dev/firehose/microservices_stream" = {
+      description = "Kinesis Firehose stream name for microservices logs"
+      value       = module.firehose_microservices.stream_name
+    }
+    
+    # Network Info
+    "/popbl-grupo1/dev/vpc/vpc_id" = {
+      description = "VPC ID"
+      value       = data.terraform_remote_state.network.outputs.vpc_id
+    }
+    
+    # Microservices IPs (para cuando estén listos)
+    "/popbl-grupo1/dev/microservices/auth_log_ips" = {
+      description = "Private IPs of Auth-Log microservice instances"
+      value       = jsonencode([
+        module.ec2_az1_private.private_ips["${var.project_name}-Auth-Log-Microservice"],
+        module.ec2_az2_private.private_ips["${var.project_name}-Auth-Log-Microservice-2"]
+      ])
+    }
+  }
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name      = "${var.project_name}-secrets"
+      Component = "SecOps"
+      Level     = "1"
+    }
+  )
+
+  depends_on = [
+    module.dynamodb,
+    module.s3_logs,
+    module.firehose_honeypots,
+    module.firehose_microservices
+  ]
+}
