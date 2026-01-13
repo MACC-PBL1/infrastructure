@@ -158,7 +158,6 @@ module "rds" {
 
   db_name            = var.db_name
   db_master_username = var.db_master_username
-  db_master_password = var.db_master_password
   db_instance_class  = var.db_instance_class
 }
 
@@ -183,7 +182,7 @@ module "api_gateway" {
 module "logs_s3" {
   source = "../../../modules/s3"
 
-  bucket_name = "${local.name_prefix}-zeek-logs"
+  bucket_name = "${local.name_prefix}-zeek-logs-2"
 
   tags = {
     Project     = var.project_name
@@ -192,40 +191,40 @@ module "logs_s3" {
   }
 }
 
-module "firehose_zeek" {
-  source = "../../../modules/firehose"
+# module "firehose_zeek" {
+#   source = "../../../modules/firehose"
+#
+#   firehose_name  = "${local.name_prefix}-zeek-firehose"
+#
+#   s3_bucket_name = module.logs_s3.bucket_name
+#   s3_bucket_arn  = module.logs_s3.bucket_arn
+#
+#   iam_role_arn = var.lab_role_arn
+#   prefix       = "zeek"
+#
+#   tags = {
+#     Project     = var.project_name
+#     Environment = var.environment
+#     Owner       = var.username
+#     LogSource   = "zeek"
+#   }
+# }
 
-  firehose_name  = "${local.name_prefix}-zeek-firehose"
-
-  s3_bucket_name = module.logs_s3.bucket_name
-  s3_bucket_arn  = module.logs_s3.bucket_arn
-
-  iam_role_arn = var.lab_role_arn
-  prefix       = "zeek"
-
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-    Owner       = var.username
-    LogSource   = "zeek"
-  }
-}
-
-module "firehose_zeekflowmeter" {
-  source = "../../../modules/firehose"
-
-  firehose_name  = "${local.name_prefix}-zeekflowmeter-firehose"
-
-  s3_bucket_name = module.logs_s3.bucket_name
-  s3_bucket_arn  = module.logs_s3.bucket_arn
-
-  iam_role_arn = var.lab_role_arn
-  prefix       = "zeekflowmeter"
-
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-    Owner       = var.username
-    LogSource   = "zeekflowmeter"
-  }
-}
+# module "firehose_zeekflowmeter" {
+#   source = "../../../modules/firehose"
+#
+#   firehose_name  = "${local.name_prefix}-zeekflowmeter-firehose"
+#
+#   s3_bucket_name = module.logs_s3.bucket_name
+#   s3_bucket_arn  = module.logs_s3.bucket_arn
+#
+#   iam_role_arn = var.lab_role_arn
+#   prefix       = "zeekflowmeter"
+#
+#   tags = {
+#     Project     = var.project_name
+#     Environment = var.environment
+#     Owner       = var.username
+#     LogSource   = "zeekflowmeter"
+#   }
+# }

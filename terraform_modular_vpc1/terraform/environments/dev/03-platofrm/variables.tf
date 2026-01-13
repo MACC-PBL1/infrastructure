@@ -113,12 +113,6 @@ variable "db_master_username" {
   default     = "admin"
 }
 
-variable "db_master_password" {
-  description = "Master password for Aurora"
-  type        = string
-  sensitive   = true
-}
-
 variable "db_instance_class" {
   description = "Aurora instance class"
   type        = string
