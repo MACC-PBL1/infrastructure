@@ -10,3 +10,7 @@ variable "db_master_password" {
   type        = string
   sensitive   = true
 }
+variable "kms_key_arn" {
+  description = "KMS key ARN for Aurora RDS encryption"
+  type        = string
+}

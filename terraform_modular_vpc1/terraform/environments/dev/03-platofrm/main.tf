@@ -149,6 +149,18 @@ module "microservices" {
 resource "random_password" "rds_master" {
   length  = 20
   special = true
+
+  override_special = "!#$%&()*+,-.:;<=>?[]^_{|}~"
+}
+
+
+# =========================
+# KMS (for RDS encryption)
+# =========================
+module "kms_rds" {
+  source = "../../../modules/kms"
+
+  name_prefix = local.name_prefix
 }
 
 # =========================
@@ -165,6 +177,8 @@ module "rds" {
   db_master_username = var.db_master_username
   db_master_password = random_password.rds_master.result
   db_instance_class  = var.db_instance_class
+
+  kms_key_arn = module.kms_rds.kms_key_arn
 }
 
 
