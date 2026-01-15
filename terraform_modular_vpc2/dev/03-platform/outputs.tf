@@ -73,23 +73,3 @@ output "auth_microservice_ids" {
     if can(regex("Auth-Log-Microservice", name))
   }
 }
-
-# ============================================
-# Secrets Outputs
-# ============================================
-output "secrets_parameter_arns" {
-  description = "ARNs of stored secrets in Parameter Store"
-  value       = module.secrets.parameter_arns
-  sensitive   = true
-}
-
-output "secrets_parameter_names" {
-  description = "Names of stored secrets (not sensitive, just paths)"
-  value       = module.secrets.parameter_names
-}
-
-
-output "secrets_count" {
-  description = "Number of secrets stored"
-  value       = length(module.secrets.parameter_names)
-}
