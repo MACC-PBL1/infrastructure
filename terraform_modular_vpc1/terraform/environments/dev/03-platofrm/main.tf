@@ -146,6 +146,11 @@ module "microservices" {
   cpu_target_utilization     = var.cpu_target_utilization
 }
 
+resource "random_password" "rds_master" {
+  length  = 20
+  special = true
+}
+
 # =========================
 # RDS (Aurora)
 # =========================
@@ -158,8 +163,28 @@ module "rds" {
 
   db_name            = var.db_name
   db_master_username = var.db_master_username
+  db_master_password = random_password.rds_master.result
   db_instance_class  = var.db_instance_class
 }
+
+
+# =========================
+# SecOps - Secrets (SSM Parameter Store)
+# =========================
+module "secrets" {
+  source = "../../../modules/secrets"
+
+  secrets = {
+    "/${local.name_prefix}/rds/master_password" = {
+      description = "Master password for Aurora RDS"
+      value       = random_password.rds_master.result
+    }
+  }
+
+  tags = var.common_tags
+}
+
+
 
 # =========================
 # API Gateway -> VPC Link -> ALB
@@ -191,40 +216,40 @@ module "logs_s3" {
   }
 }
 
- module "firehose_zeek" {
-   source = "../../../modules/firehose"
+module "firehose_zeek" {
+  source = "../../../modules/firehose"
 
-   firehose_name  = "${local.name_prefix}-zeek-firehose"
+  firehose_name  = "${local.name_prefix}-zeek-firehose"
 
-   s3_bucket_name = module.logs_s3.bucket_name
-   s3_bucket_arn  = module.logs_s3.bucket_arn
+  s3_bucket_name = module.logs_s3.bucket_name
+  s3_bucket_arn  = module.logs_s3.bucket_arn
 
-   iam_role_arn = var.lab_role_arn
-   prefix       = "zeek"
+  iam_role_arn = var.lab_role_arn
+  prefix       = "zeek"
 
-   tags = {
-     Project     = var.project_name
-     Environment = var.environment
-     Owner       = var.username
-     LogSource   = "zeek"
-   }
- }
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Owner       = var.username
+    LogSource   = "zeek"
+  }
+}
 
- module "firehose_zeekflowmeter" {
-   source = "../../../modules/firehose"
+module "firehose_zeekflowmeter" {
+  source = "../../../modules/firehose"
 
-   firehose_name  = "${local.name_prefix}-zeekflowmeter-firehose"
+  firehose_name  = "${local.name_prefix}-zeekflowmeter-firehose"
 
-   s3_bucket_name = module.logs_s3.bucket_name
-   s3_bucket_arn  = module.logs_s3.bucket_arn
+  s3_bucket_name = module.logs_s3.bucket_name
+  s3_bucket_arn  = module.logs_s3.bucket_arn
 
-   iam_role_arn = var.lab_role_arn
-   prefix       = "zeekflowmeter"
+  iam_role_arn = var.lab_role_arn
+  prefix       = "zeekflowmeter"
 
-   tags = {
-     Project     = var.project_name
-     Environment = var.environment
-     Owner       = var.username
-     LogSource   = "zeekflowmeter"
-   }
- }
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Owner       = var.username
+    LogSource   = "zeekflowmeter"
+  }
+}
