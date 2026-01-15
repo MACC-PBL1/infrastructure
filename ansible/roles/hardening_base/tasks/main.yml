@@ -1,0 +1,199 @@
+---
+- name: Ensure base packages are installed (Debian/Ubuntu)
+  apt:
+    name:
+      - sudo
+      - unattended-upgrades
+      - apt-listchanges
+    state: present
+    update_cache: yes
+
+# =========================
+# SSH HARDENING
+# =========================
+
+- name: Ensure /etc/ssh/sshd_config exists
+  stat:
+    path: /etc/ssh/sshd_config
+  register: sshd_cfg
+
+- name: Fail if sshd_config not found
+  fail:
+    msg: "No encuentro /etc/ssh/sshd_config. Revisa la AMI o el servicio SSH."
+  when: not sshd_cfg.stat.exists
+
+# Importante: hacemos cambios con lineinfile para no reventar el fichero entero
+- name: SSH - Disable root login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*PermitRootLogin\s+'
+    line: 'PermitRootLogin no'
+    create: no
+  notify: Restart ssh
+
+- name: SSH - Disable password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*PasswordAuthentication\s+'
+    line: 'PasswordAuthentication no'
+    create: no
+  notify: Restart ssh
+
+- name: SSH - Ensure PubkeyAuthentication enabled
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*PubkeyAuthentication\s+'
+    line: 'PubkeyAuthentication yes'
+    create: no
+  notify: Restart ssh
+
+- name: SSH - Reduce brute force surface (MaxAuthTries)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*MaxAuthTries\s+'
+    line: "MaxAuthTries {{ hardening_ssh_max_auth_tries }}"
+    create: no
+  notify: Restart ssh
+
+- name: SSH - ClientAliveInterval
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*ClientAliveInterval\s+'
+    line: "ClientAliveInterval {{ hardening_ssh_client_alive_interval }}"
+    create: no
+  notify: Restart ssh
+
+- name: SSH - ClientAliveCountMax
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*ClientAliveCountMax\s+'
+    line: "ClientAliveCountMax {{ hardening_ssh_client_alive_count_max }}"
+    create: no
+  notify: Restart ssh
+
+- name: SSH - Disable X11Forwarding
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*X11Forwarding\s+'
+    line: "X11Forwarding {{ hardening_ssh_x11_forwarding }}"
+    create: no
+  notify: Restart ssh
+
+- name: SSH - AllowTcpForwarding setting
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*AllowTcpForwarding\s+'
+    line: "AllowTcpForwarding {{ hardening_ssh_allow_tcp_forwarding }}"
+    create: no
+  notify: Restart ssh
+
+- name: SSH - Ensure SSH listens on expected port
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^\s*Port\s+'
+    line: "Port {{ hardening_ssh_port }}"
+    create: no
+  notify: Restart ssh
+
+# Muy importante: valida config antes de reiniciar para no quedarte fuera
+- name: Validate sshd configuration (sshd -t)
+  command: sshd -t
+  changed_when: false
+
+# =========================
+# OS HARDENING: USERS + SUDO
+# =========================
+
+- name: Ensure admin user exists
+  user:
+    name: "{{ hardening_admin_user }}"
+    shell: /bin/bash
+    state: present
+
+# Esto NO deshabilita sudo: solo controla reglas seguras
+- name: Create sudoers policy file for admin (least privilege baseline)
+  copy:
+    dest: "/etc/sudoers.d/90-{{ hardening_admin_user }}"
+    owner: root
+    group: root
+    mode: "0440"
+    content: |
+      Defaults logfile="/var/log/sudo.log"
+      Defaults use_pty
+      Defaults passwd_tries=3
+      Defaults timestamp_timeout=5
+      {{ hardening_admin_user }} ALL=(ALL:ALL) ALL
+
+- name: Validate sudoers syntax
+  command: visudo -cf /etc/sudoers
+  changed_when: false
+
+# =========================
+# DISABLE UNNEEDED SERVICES
+# =========================
+
+- name: Gather service facts
+  service_facts:
+
+- name: Disable and stop unnecessary services if present
+  service:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+  loop: "{{ hardening_disable_services }}"
+  when: item in ansible_facts.services
+
+# =========================
+# AUTOMATIC SECURITY UPDATES
+# =========================
+
+- name: Enable unattended-upgrades (Debian/Ubuntu)
+  copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+- name: Configure unattended-upgrades (minimal safe config)
+  copy:
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      Unattended-Upgrade::Origins-Pattern {
+        "origin=Debian,codename=${distro_codename},label=Debian-Security";
+        "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+        "origin=Ubuntu,codename=${distro_codename},label=Ubuntu";
+        "origin=Ubuntu,codename=${distro_codename}-security,label=Ubuntu";
+      };
+
+      Unattended-Upgrade::Automatic-Reboot "false";
+      Unattended-Upgrade::Remove-Unused-Dependencies "true";
+      Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+
+- name: Ensure unattended-upgrades service is enabled (if exists)
+  service:
+    name: unattended-upgrades
+    enabled: true
+    state: started
+  when: "'unattended-upgrades.service' in ansible_facts.services or 'unattended-upgrades' in ansible_facts.services"
+
+# =========================
+# KERNEL HARDENING (sysctl)
+# =========================
+
+- name: Write sysctl hardening settings
+  copy:
+    dest: /etc/sysctl.d/99-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      {% for k, v in hardening_sysctl.items() %}
+      {{ k }} = {{ v }}
+      {% endfor %}
+  notify: Reload sysctl

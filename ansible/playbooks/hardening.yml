@@ -1,0 +1,9 @@
+---
+- name: Base hardening (SSH + OS + services + updates + sysctl)
+  hosts: nat_bastion
+  become: true
+  gather_facts: true
+
+  roles:
+    - common
+    - hardening_base
