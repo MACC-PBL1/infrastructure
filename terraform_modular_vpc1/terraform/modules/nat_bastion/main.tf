@@ -32,6 +32,7 @@ EOF
 
   tags = {
     Name = "${var.name_prefix}-nat-bastion"
+    Role = "nat_bastion"
   }
 }
 

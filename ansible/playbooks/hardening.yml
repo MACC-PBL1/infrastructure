@@ -1,6 +1,6 @@
 ---
 - name: Base hardening (SSH + OS + services + updates + sysctl)
-  hosts: nat_bastion
+  hosts: role_microservice
   become: true
   gather_facts: true
 

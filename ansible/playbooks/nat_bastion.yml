@@ -1,8 +1,11 @@
 ---
-- name: Configure NAT + Bastion host
+- name: Configure NAT + Bastion host and install fail2ban
   hosts: nat_bastion
   become: true
   gather_facts: true
 
   roles:
+    - common
     - nat_bastion
+    - hardening_base
+    - fail2ban

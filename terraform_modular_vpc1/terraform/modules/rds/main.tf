@@ -23,16 +23,14 @@ resource "aws_rds_cluster" "aurora" {
   db_subnet_group_name   = aws_db_subnet_group.rds.name
   vpc_security_group_ids = [var.rds_sg_id]
 
-  # 🔒 CIFRADO EN REPOSO
   storage_encrypted = true
   kms_key_id        = var.kms_key_arn
 
-  # 🛡️ BACKUPS Y PROTECCIÓN
   backup_retention_period = 7
   skip_final_snapshot     = false
-  deletion_protection     = true
+  final_snapshot_identifier = "${var.name_prefix}-aurora-final"
+  deletion_protection     = false
 
-  # 📊 LOGS (muy bien visto en SecOps)
   enabled_cloudwatch_logs_exports = [
     "error",
     "general",

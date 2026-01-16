@@ -1,0 +1,13 @@
+[DEFAULT]
+backend = {{ fail2ban_backend }}
+banaction = {{ fail2ban_banaction }}
+findtime = {{ fail2ban_ssh_findtime }}
+bantime  = {{ fail2ban_ssh_bantime }}
+maxretry = {{ fail2ban_ssh_maxretry }}
+ignoreip = {{ fail2ban_ignore_ips | join(" ") }}
+
+[sshd]
+enabled  = {{ 'true' if fail2ban_ssh_enabled else 'false' }}
+port     = {{ fail2ban_ssh_port }}
+filter   = sshd
+logpath  = /var/log/auth.log

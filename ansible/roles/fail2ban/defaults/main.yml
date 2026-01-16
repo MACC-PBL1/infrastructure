@@ -1,0 +1,17 @@
+---
+# Jail SSH
+fail2ban_ssh_enabled: true
+fail2ban_ssh_port: 22
+fail2ban_ssh_maxretry: 3
+fail2ban_ssh_findtime: 600
+fail2ban_ssh_bantime: 3600
+
+# Backend recomendado para systemd
+fail2ban_backend: systemd
+
+# Acción (iptables clásico)
+fail2ban_banaction: iptables-multiport
+
+# Ignorar IPs (MUY importante)
+fail2ban_ignore_ips:
+  - "127.0.0.1/8"
