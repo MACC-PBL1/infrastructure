@@ -43,3 +43,13 @@ output "logs_s3_bucket_name" {
 #output "firehose_zeekflowmeter_arn" {
 #  value = module.firehose_zeekflowmeter.firehose_arn
 #}
+
+output "grafana_private_ip" {
+  description = "Grafana private IP"
+  value       = module.grafana.private_ip
+}
+
+output "grafana_instance_id" {
+  description = "Grafana instance ID"
+  value       = module.grafana.instance_id
+}
