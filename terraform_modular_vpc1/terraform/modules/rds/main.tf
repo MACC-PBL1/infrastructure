@@ -27,9 +27,8 @@ resource "aws_rds_cluster" "aurora" {
   kms_key_id        = var.kms_key_arn
 
   backup_retention_period = 7
-  skip_final_snapshot     = false
-  final_snapshot_identifier = "${var.name_prefix}-aurora-final"
   deletion_protection     = false
+  skip_final_snapshot = true
 
   enabled_cloudwatch_logs_exports = [
     "error",
