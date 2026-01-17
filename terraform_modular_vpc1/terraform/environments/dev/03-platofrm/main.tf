@@ -267,3 +267,19 @@ module "firehose_zeekflowmeter" {
     LogSource   = "zeekflowmeter"
   }
 }
+
+# =========================
+# Grafana Monitoring
+# =========================
+module "grafana" {
+  source = "../../../modules/grafana"
+
+  name_prefix      = local.name_prefix
+  vpc_id           = data.terraform_remote_state.network.outputs.vpc_id
+  vpc_cidr         = data.terraform_remote_state.network.outputs.vpc_cidr
+  subnet_id        = data.terraform_remote_state.network.outputs.private_subnet_ids[0]
+  ami_id           = data.aws_ami.ubuntu.id
+  instance_type    = "t3.small"  # Ajusta según necesidad
+  key_pair_name    = var.key_pair_name
+  nat_sg_id        = module.security_groups.nat_sg_id
+}
