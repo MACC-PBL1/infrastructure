@@ -54,3 +54,4 @@ resource "aws_rds_cluster_instance" "aurora_instances" {
     Name = "${var.name_prefix}-aurora-${count.index}"
   }
 }
+

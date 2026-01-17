@@ -283,3 +283,48 @@ module "grafana" {
   key_pair_name    = var.key_pair_name
   nat_sg_id        = module.security_groups.nat_sg_id
 }
+
+# =========================
+# Lambda - Logs to Database
+# =========================
+module "lambda_logs_to_db" {
+  source = "../../../modules/lambda"
+
+  function_name    = "${local.name_prefix}-logs-to-db"
+  source_code_path = "${path.module}/lambda_functions/logs_to_db"
+  handler          = "index.handler"
+  runtime          = "python3.11"
+  timeout          = 300
+  memory_size      = 1024
+
+  # USAR LABROLE EXISTENTE (AWS Academy)
+  use_existing_role  = true
+  existing_role_arn  = var.lab_role_arn
+
+  s3_bucket_arn    = module.logs_s3.bucket_arn
+  s3_bucket_id     = module.logs_s3.bucket_name
+  s3_filter_prefix = "zeek/"
+  s3_filter_suffix = ""
+
+  vpc_config = {
+    subnet_ids         = data.terraform_remote_state.network.outputs.private_subnet_ids
+    security_group_ids = [module.security_groups.microservices_sg_id]
+  }
+
+  environment_variables = {
+    DB_HOST           = module.rds.writer_endpoint
+    DB_PORT           = "3306"
+    DB_NAME           = var.db_name
+    DB_USER           = var.db_master_username
+    DB_PASSWORD_PARAM = "/${local.name_prefix}/rds/master_password"
+  }
+
+  # Ya no necesitamos ssm_parameter_arns porque LabRole ya tiene esos permisos
+  
+  tags = var.common_tags
+
+  depends_on = [
+    module.rds,
+    module.logs_s3
+  ]
+}
