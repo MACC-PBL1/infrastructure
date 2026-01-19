@@ -12,3 +12,9 @@ variable "asg_min_size" { type = number }
 variable "asg_max_size" { type = number }
 variable "asg_desired_capacity" { type = number }
 variable "cpu_target_utilization" { type = number }
+variable "microservices" {
+  type = map(object({
+    port            = number
+    user_data_file  = string
+  }))
+}
