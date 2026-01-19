@@ -54,26 +54,13 @@ variable "allowed_ssh_cidr" {
 
 # ============ Microservices ============
 variable "microservices" {
-  description = "Microservices definition. Key is service name."
+  description = "Logical microservice groups. One ASG per group."
   type = map(object({
-    port         = number
-    path_pattern = string
+    paths          = list(string)
+    user_data_file = string
   }))
-  default = {
-    order-warehouse-microservice = {
-        port = 8081
-        path_pattern = "/order/*"
-      }
-      payment-delivery-microservice = {
-        port = 8082
-        path_pattern = "/payment/*"
-      }
-      machines-microservice = {
-        port = 8083
-        path_pattern = "/machines/*"
-      }
-  }
 }
+
 
 # ============ AutoScaling ============
 variable "asg_min_size" {

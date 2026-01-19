@@ -28,5 +28,31 @@ logs_instance_ips = [
   "10.1.11.61",
   "10.1.12.246"
 ]
-#lab_role_arn = "arn:aws:iam::512411987939:role/LabRole"
-lab_role_arn = "arn:aws:iam::975049933544:role/LabRole"
+lab_role_arn = "arn:aws:iam::512411987939:role/LabRole"
+#lab_role_arn = "arn:aws:iam::975049933544:role/LabRole"
+
+microservices = {
+  order-warehouse = {
+    paths = [
+      "/order/*",
+      "/warehouse/*"
+    ]
+    user_data_file = "order_warehouse.sh"
+  }
+
+  payment-delivery = {
+    paths = [
+      "/payment/*",
+      "/delivery/*"
+    ]
+    user_data_file = "payment_delivery.sh"
+  }
+
+  machines = {
+    paths = [
+      "/machines/*"
+    ]
+    user_data_file = "machines.sh"
+  }
+}
+

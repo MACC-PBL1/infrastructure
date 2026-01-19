@@ -2,10 +2,7 @@
 set -eux
 
 apt-get update -y
-apt-get install -y \
-  docker.io \
-  git \
-  docker-compose-plugin
+apt-get install -y docker.io git docker-compose-plugin
 
 systemctl enable docker
 systemctl start docker
@@ -15,8 +12,7 @@ cd /opt/compose
 
 git clone https://github.com/MACC-PBL1/Compose.git
 cd Compose
-
 git submodule update --init --recursive
 
-cd payment-delivery
-#docker compose up -d
+cd machine
+docker compose up -d

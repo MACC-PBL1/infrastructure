@@ -99,6 +99,7 @@ resource "aws_vpc_security_group_egress_rule" "alb_egress" {
 }
 
 # ============ MICROSERVICES (PRIVATE) ============
+# ============ MICROSERVICES (PRIVATE) ============
 resource "aws_security_group" "microservices" {
   name_prefix = "${var.name_prefix}-ms-"
   description = "Security group for microservices instances"
@@ -124,20 +125,18 @@ resource "aws_vpc_security_group_ingress_rule" "ms_ssh_from_bastion" {
   }
 }
 
-# App ports from ALB
-resource "aws_vpc_security_group_ingress_rule" "ms_from_alb_ports" {
-  for_each = var.microservices
-
+# HTTPS from ALB (HAProxy)
+resource "aws_vpc_security_group_ingress_rule" "ms_from_alb_https" {
   security_group_id            = aws_security_group.microservices.id
   referenced_security_group_id = aws_security_group.alb.id
 
-  description = "App port ${each.key} from ALB"
-  from_port   = each.value.port
-  to_port     = each.value.port
+  description = "HTTPS from ALB to microservices (HAProxy)"
+  from_port   = 443
+  to_port     = 443
   ip_protocol = "tcp"
 
   tags = {
-    Name = "APP-${each.key}"
+    Name = "HTTPS-FROM-ALB"
   }
 }
 
@@ -156,7 +155,7 @@ resource "aws_vpc_security_group_ingress_rule" "ms_from_peer_vpc" {
   }
 }
 
-# Egress all (internet via NAT + RDS)
+# Egress all
 resource "aws_vpc_security_group_egress_rule" "ms_egress" {
   security_group_id = aws_security_group.microservices.id
 

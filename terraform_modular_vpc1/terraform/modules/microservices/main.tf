@@ -12,67 +12,9 @@ resource "aws_launch_template" "ms" {
 
   vpc_security_group_ids = [var.microservices_sg_id]
 
-  user_data = base64encode(<<EOF
-#!/bin/bash
-set -e
-
-apt-get update -y
-apt-get install -y python3
-
-cat >/usr/local/bin/${each.key}.py <<'PY'
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import os
-import socket
-
-NAME = os.environ.get("SVC_NAME", "svc")
-PORT = int(os.environ.get("SVC_PORT", "8080"))
-HOSTNAME = socket.gethostname()
-IP = socket.gethostbyname(HOSTNAME)
-
-class H(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain")
-        self.end_headers()
-
-        body = f"""
-service={NAME}
-hostname={HOSTNAME}
-ip={IP}
-port={PORT}
-path={self.path}
-"""
-        self.wfile.write(body.encode())
-
-    def log_message(self, format, *args):
-        return
-
-if __name__ == "__main__":
-    httpd = HTTPServer(("0.0.0.0", PORT), H)
-    httpd.serve_forever()
-PY
-
-cat >/etc/systemd/system/${each.key}.service <<SERVICE
-[Unit]
-Description=${each.key} simple service
-After=network.target
-
-[Service]
-Environment=SVC_NAME=${each.key}
-Environment=SVC_PORT=${each.value.port}
-ExecStart=/usr/bin/python3 /usr/local/bin/${each.key}.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-SERVICE
-
-systemctl daemon-reload
-systemctl enable ${each.key}
-systemctl start ${each.key}
-EOF
+  user_data = base64encode(
+    file("${path.module}/user_data/${each.value.user_data_file}")
   )
-
 
   tag_specifications {
     resource_type = "instance"
@@ -83,6 +25,7 @@ EOF
     }
   }
 }
+
 
 resource "aws_autoscaling_group" "ms" {
   for_each = var.microservices
