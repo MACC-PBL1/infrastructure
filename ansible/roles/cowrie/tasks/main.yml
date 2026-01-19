@@ -1,0 +1,135 @@
+---
+# ============================================
+# PARTE 1: Instalar dependencias del sistema
+# ============================================
+# Cowrie necesita Python, pip, y librerías de desarrollo para compilar
+
+- name: Actualizar cache de apt
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Instalar dependencias de cowrie
+  apt:
+    name:
+      - python3-pip
+      - python3-venv      # Para crear entorno virtual de Python
+      - git               # Para clonar el repositorio
+      - openssl
+      - libssl-dev        # Librerías para SSH
+      - zlib1g-dev
+      - authbind          # Permite a usuarios no-root usar puertos < 1024
+      - libffi-dev
+      - build-essential   # Compiladores necesarios
+      - python3-dev
+    state: present
+
+# ============================================
+# PARTE 2: Crear usuario cowrie
+# ============================================
+# Por seguridad, cowrie corre con su propio usuario, no como root
+
+- name: Crear grupo cowrie
+  group:
+    name: "{{ cowrie_group }}"
+    state: present
+
+- name: Crear usuario cowrie
+  user:
+    name: "{{ cowrie_user }}"
+    group: "{{ cowrie_group }}"
+    home: "{{ cowrie_home }}"
+    shell: /bin/bash
+    create_home: yes
+    state: present
+
+# ============================================
+# PARTE 3: Configurar authbind
+# ============================================
+# authbind permite que el usuario cowrie (no root) escuche en puerto 22
+
+- name: Crear archivo authbind para puerto 22
+  file:
+    path: "/etc/authbind/byport/{{ cowrie_honeypot_port }}"
+    state: touch
+    owner: "{{ cowrie_user }}"
+    group: "{{ cowrie_group }}"
+    mode: "0755"
+
+# ============================================
+# PARTE 4: Mover SSH real al puerto 2222
+# ============================================
+# Así el honeypot puede usar el puerto 22 y tú sigues pudiendo conectarte
+
+- name: Cambiar puerto SSH a {{ cowrie_real_ssh_port }}
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port\s+'
+    line: "Port {{ cowrie_real_ssh_port }}"
+    backup: yes
+  notify: Restart SSH
+
+# ============================================
+# PARTE 5: Clonar e instalar Cowrie
+# ============================================
+
+- name: Clonar repositorio cowrie
+  become_user: "{{ cowrie_user }}"
+  git:
+    repo: "{{ cowrie_repo }}"
+    dest: "{{ cowrie_install_dir }}"
+    version: "master"
+
+- name: Crear entorno virtual Python
+  become_user: "{{ cowrie_user }}"
+  command: python3 -m venv {{ cowrie_install_dir }}/cowrie-env
+  args:
+    creates: "{{ cowrie_install_dir }}/cowrie-env/bin/activate"
+
+- name: Actualizar pip en el entorno virtual
+  become_user: "{{ cowrie_user }}"
+  pip:
+    name:
+      - pip
+      - setuptools
+      - wheel
+    state: latest
+    virtualenv: "{{ cowrie_install_dir }}/cowrie-env"
+
+- name: Instalar dependencias de cowrie (requirements.txt)
+  become_user: "{{ cowrie_user }}"
+  pip:
+    requirements: "{{ cowrie_install_dir }}/requirements.txt"
+    virtualenv: "{{ cowrie_install_dir }}/cowrie-env"
+
+# ============================================
+# PARTE 6: Configurar Cowrie
+# ============================================
+
+- name: Copiar configuración de cowrie
+  become_user: "{{ cowrie_user }}"
+  template:
+    src: cowrie.cfg.j2
+    dest: "{{ cowrie_install_dir }}/etc/cowrie.cfg"
+    mode: "0644"
+
+# ============================================
+# PARTE 7: Crear servicio systemd
+# ============================================
+# Para que cowrie arranque automáticamente al reiniciar la máquina
+
+- name: Crear servicio systemd para cowrie
+  template:
+    src: cowrie.service.j2
+    dest: /etc/systemd/system/cowrie.service
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart Cowrie
+
+- name: Habilitar y arrancar cowrie
+  systemd:
+    name: cowrie
+    enabled: yes
+    state: started
+    daemon_reload: yes

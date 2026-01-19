@@ -1,0 +1,14 @@
+---
+# ============================================
+# Playbook para desplegar Honeypots
+# ============================================
+
+# Cowrie - SSH Honeypot
+- name: Desplegar Cowrie SSH Honeypot
+  hosts: cowrie
+  become: true
+  gather_facts: true
+
+  roles:
+    - common
+    - cowrie

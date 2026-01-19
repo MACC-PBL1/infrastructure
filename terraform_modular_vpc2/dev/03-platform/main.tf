@@ -54,6 +54,12 @@ module "ec2_az1_public" {
       public_ip     = true
       user_data = local.docker_git_user_data
     }
+    "${var.project_name}-Opensource1-Honeypot" = {
+      instance_type = var.instance_type_public
+      subnet_id     = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
+      public_ip     = true
+      user_data = local.docker_git_user_data
+    }
 
     "${var.project_name}-Custom-Honeypot" = {
       instance_type = var.instance_type_public

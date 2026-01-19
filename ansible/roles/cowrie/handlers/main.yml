@@ -1,0 +1,17 @@
+---
+# Se ejecuta cuando cambiamos la configuración de SSH (puerto 2222)
+- name: Restart SSH
+  service:
+    name: ssh
+    state: restarted
+
+# Se ejecuta cuando añadimos el servicio cowrie.service
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+# Se ejecuta cuando cambiamos la configuración de cowrie
+- name: Restart Cowrie
+  systemd:
+    name: cowrie
+    state: restarted

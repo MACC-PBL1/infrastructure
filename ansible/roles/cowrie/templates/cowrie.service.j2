@@ -1,0 +1,29 @@
+[Unit]
+# Descripción del servicio
+Description=Cowrie SSH Honeypot
+# Arranca después de que la red esté disponible
+After=network.target
+
+[Service]
+# Tipo simple: el proceso principal es el que arranca
+Type=simple
+
+# Usuario y grupo que ejecuta cowrie (no root)
+User={{ cowrie_user }}
+Group={{ cowrie_group }}
+
+# Directorio de trabajo
+WorkingDirectory={{ cowrie_install_dir }}
+
+# Comando para arrancar cowrie
+# authbind permite usar puerto 22 sin ser root
+# -n = no daemonizar (systemd lo gestiona)
+ExecStart=/usr/bin/authbind --deep {{ cowrie_install_dir }}/cowrie-env/bin/twistd -n -l {{ cowrie_log_dir }}/cowrie.log cowrie
+
+# Si falla, reiniciar automáticamente
+Restart=always
+RestartSec=5
+
+[Install]
+# Arrancar con el sistema
+WantedBy=multi-user.target
