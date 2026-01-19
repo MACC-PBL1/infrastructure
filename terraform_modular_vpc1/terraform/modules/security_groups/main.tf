@@ -199,3 +199,18 @@ resource "aws_vpc_security_group_egress_rule" "rds_egress" {
   ip_protocol = "-1"
   cidr_ipv4   = "0.0.0.0/0"
 }
+
+# ============ LAMBDA -> RDS ============
+resource "aws_vpc_security_group_ingress_rule" "rds_from_lambda" {
+  security_group_id = aws_security_group.rds.id
+
+  description = "MySQL from Lambda functions"
+  from_port   = 3306
+  to_port     = 3306
+  ip_protocol = "tcp"
+  cidr_ipv4   = var.vpc_cidr
+
+  tags = {
+    Name = "MYSQL-FROM-LAMBDA"
+  }
+}

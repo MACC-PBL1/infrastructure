@@ -37,4 +37,4 @@ availability_zones = [
 # =========================
 # NAT
 # =========================
-enable_nat_gateway = false
+enable_nat_gateway = true
