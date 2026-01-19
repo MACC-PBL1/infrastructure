@@ -23,3 +23,9 @@ resource "aws_route" "to_peer_private" {
   destination_cidr_block    = var.peer_vpc_cidr
   vpc_peering_connection_id = var.peer_vpc_peering_id
 }
+
+resource "aws_route" "to_peer_public" {
+  route_table_id            = data.terraform_remote_state.network.outputs.public_route_table_id
+  destination_cidr_block    = var.peer_vpc_cidr
+  vpc_peering_connection_id = var.peer_vpc_peering_id
+}

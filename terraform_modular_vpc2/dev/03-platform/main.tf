@@ -6,6 +6,25 @@ data "terraform_remote_state" "network" {
   }
 }
 
+# ================================================
+# Locals para reutilizar // instalar docker y git
+# ================================================
+locals {
+  docker_git_user_data = <<-EOF
+    #!/bin/bash
+    set -e
+    apt-get update -y
+    apt-get upgrade -y
+    apt-get install -y git
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+    usermod -aG docker ubuntu
+    systemctl enable docker
+    systemctl start docker
+  EOF
+}
+
+
 # ============================================
 # Security Groups
 # ============================================
@@ -33,12 +52,14 @@ module "ec2_az1_public" {
       instance_type = var.instance_type_public
       subnet_id     = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
       public_ip     = true
+      user_data = local.docker_git_user_data
     }
 
     "${var.project_name}-Custom-Honeypot" = {
       instance_type = var.instance_type_public
       subnet_id     = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
       public_ip     = true
+      user_data = local.docker_git_user_data
     }
   }
 }
@@ -58,12 +79,14 @@ module "ec2_az1_private" {
       instance_type = var.instance_type_private
       subnet_id     = data.terraform_remote_state.network.outputs.private_subnet_ids[0]
       public_ip     = false
+      user_data = local.docker_git_user_data
     }
 
     "${var.project_name}-RabbitMQ" = {
       instance_type = var.instance_type_private
       subnet_id     = data.terraform_remote_state.network.outputs.private_subnet_ids[0]
       public_ip     = false
+      user_data = local.docker_git_user_data
     }
 
     "${var.project_name}-Auth-Log-Microservice" = {
@@ -75,9 +98,15 @@ module "ec2_az1_private" {
 #!/bin/bash
 set -e
 
+# Instalar Docker y Git
 apt-get update -y
-apt-get install -y python3
+apt-get upgrade -y
+apt-get install -y git docker.io python3
+systemctl enable docker
+systemctl start docker
+usermod -aG docker ubuntu
 
+# Crear el microservicio
 cat >/usr/local/bin/auth_logs.py <<'PY'
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socket
@@ -93,7 +122,6 @@ class H(BaseHTTPRequestHandler):
             self.wfile.write(b"OK")
             return
 
-        # Lógica normal del microservicio
         if self.path.startswith("/auth"):
             svc = "auth"
         elif self.path.startswith("/logs"):
@@ -136,9 +164,8 @@ systemctl enable auth-logs
 systemctl start auth-logs
 EOF
     }
-  }
-}
-
+    }
+    }
 
 # ============================================
 # EC2 - AZ2 Private
@@ -155,12 +182,14 @@ module "ec2_az2_private" {
       instance_type = var.instance_type_private
       subnet_id     = data.terraform_remote_state.network.outputs.private_subnet_ids[1]
       public_ip     = false
+      user_data = local.docker_git_user_data
     }
 
     "${var.project_name}-RabbitMQ-2" = {
       instance_type = var.instance_type_private
       subnet_id     = data.terraform_remote_state.network.outputs.private_subnet_ids[1]
       public_ip     = false
+      user_data = local.docker_git_user_data
     }
 
     "${var.project_name}-Auth-Log-Microservice-2" = {
@@ -172,9 +201,15 @@ module "ec2_az2_private" {
 #!/bin/bash
 set -e
 
+# Instalar Docker y Git
 apt-get update -y
-apt-get install -y python3
+apt-get upgrade -y
+apt-get install -y git docker.io python3
+systemctl enable docker
+systemctl start docker
+usermod -aG docker ubuntu
 
+# Crear el microservicio
 cat >/usr/local/bin/auth_logs.py <<'PY'
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socket
@@ -190,7 +225,6 @@ class H(BaseHTTPRequestHandler):
             self.wfile.write(b"OK")
             return
 
-        # Lógica normal del microservicio
         if self.path.startswith("/auth"):
             svc = "auth"
         elif self.path.startswith("/logs"):
@@ -233,8 +267,9 @@ systemctl enable auth-logs
 systemctl start auth-logs
 EOF
     }
-  }
+    }
 }
+
 
 
 # ============================================
