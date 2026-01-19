@@ -55,20 +55,29 @@ resource "aws_security_group" "micro_sg" {
     description = "Security group for microservices"
     vpc_id = data.aws_vpc.selected.id
 
+    # SSH desde internet (para honeypots públicos)
     ingress {
-    description = "SSH from bastion VPC (via peering)"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.peer_vpc_cidr]
+        description = "SSH from internet"
+        from_port   = 22
+        to_port     = 22
+        protocol    = "tcp"
+        cidr_blocks = var.allowed_ssh_cidr
     }
 
     ingress {
-    description = "All traffic from peer VPC"
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = [var.peer_vpc_cidr]
+        description = "SSH from bastion VPC (via peering)"
+        from_port   = 22
+        to_port     = 22
+        protocol    = "tcp"
+        cidr_blocks = [var.peer_vpc_cidr]
+    }
+
+    ingress {
+        description = "All traffic from peer VPC"
+        from_port   = 0
+        to_port     = 65535
+        protocol    = "tcp"
+        cidr_blocks = [var.peer_vpc_cidr]
     }
 
     ingress {
