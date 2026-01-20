@@ -135,13 +135,16 @@ resource "aws_vpc_security_group_ingress_rule" "micro_from_vpc1_alb_8080" {
   }
 }
 
-# Si tus microservicios usan otros puertos, agrégalos:
-# resource "aws_vpc_security_group_ingress_rule" "micro_from_vpc1_alb_8081" {
-#   security_group_id = aws_security_group.micro_sg.id
-#   description = "Allow traffic from VPC1 ALB - Port 8081"
-#   from_port   = 8081
-#   to_port     = 8081
-#   ip_protocol = "tcp"
-#   cidr_ipv4   = "10.0.0.0/16"
-#   tags = { Name = "FROM-VPC1-ALB-8081" }
-# }
+resource "aws_vpc_security_group_ingress_rule" "dionaea_mongodb" {
+  security_group_id = aws_security_group.micro_sg.id
+
+  description = "MongoDB for Dionaea honeypot"
+  from_port   = 27017
+  to_port     = 27017
+  ip_protocol = "tcp"
+  cidr_ipv4   = "0.0.0.0/0"  # Abierto a Internet (es un honeypot)
+
+  tags = {
+    Name = "DIONAEA-MONGODB"
+  }
+}

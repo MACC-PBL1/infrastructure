@@ -1,0 +1,9 @@
+---
+# Docker user
+docker_user: ubuntu
+
+# Dionaea configuration
+dionaea_log_dir: "/home/{{ docker_user }}/dionaea_logs"
+dionaea_container_name: honeypot-mongo
+dionaea_image: dinotools/dionaea:latest
+dionaea_port: 27017

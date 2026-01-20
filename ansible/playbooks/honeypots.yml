@@ -1,13 +1,20 @@
----
 # ============================================
 # Playbook para desplegar Honeypots
 # ============================================
 
-# Cowrie - SSH Honeypot
+---
 - name: Desplegar Cowrie SSH Honeypot
-  hosts: cowrie
-  become: true
-  gather_facts: true
-
+  hosts: popbl-grupo1-cowrie-Honeypot
+  become: yes
+  gather_facts: yes
+  
   roles:
     - cowrie
+
+- name: Deploy Dionaea Honeypot
+  hosts: popbl-grupo1-dionaea-Honeypot
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - dionaea

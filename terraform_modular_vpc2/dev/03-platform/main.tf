@@ -19,6 +19,37 @@ module "security" {
 }
 
 # ============================================
+# ELASTIC IPs para Honeypots (IPs estáticas)
+# ============================================
+resource "aws_eip" "honeypot_cowrie" {
+  domain = "vpc"
+  
+  tags = {
+    Name        = "${var.project_name}-cowrie-honeypot-eip"
+    Environment = var.environment
+  }
+}
+
+resource "aws_eip" "honeypot_dionaea" {
+  domain = "vpc"
+  
+  tags = {
+    Name        = "${var.project_name}-dionaea-honeypot-eip"
+    Environment = var.environment
+  }
+}
+
+resource "aws_eip" "honeypot_custom" {
+  domain = "vpc"
+  
+  tags = {
+    Name        = "${var.project_name}-custom-honeypot-eip"
+    Environment = var.environment
+  }
+
+}
+
+# ============================================
 # EC2 - AZ1 Public
 # ============================================
 module "ec2_az1_public" {
@@ -29,21 +60,21 @@ module "ec2_az1_public" {
   key_name = var.key_pair_name
 
   instances = {
-    "${var.project_name}-Opensource-Honeypot" = {
+    "${var.project_name}-cowrie-Honeypot" = {
       instance_type = var.instance_type_public
       subnet_id     = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
-      public_ip     = true
+      public_ip     = false
     }
-    "${var.project_name}-Opensource1-Honeypot" = {
+    "${var.project_name}-dionaea-Honeypot" = {
       instance_type = var.instance_type_public
       subnet_id     = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
-      public_ip     = true
+      public_ip     = false
     }
 
     "${var.project_name}-Custom-Honeypot" = {
       instance_type = var.instance_type_public
       subnet_id     = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
-      public_ip     = true
+      public_ip     = false
     }
   }
 }
@@ -144,6 +175,23 @@ EOF
   }
 }
 
+# ============================================
+# Asociar Elastic IPs a los Honeypots
+# ============================================
+resource "aws_eip_association" "cowrie_honeypot" {
+  instance_id   = module.ec2_az1_public.instance_ids["${var.project_name}-cowrie-Honeypot"]
+  allocation_id = aws_eip.honeypot_cowrie.id
+}
+
+resource "aws_eip_association" "dionaea_honeypot" {
+  instance_id   = module.ec2_az1_public.instance_ids["${var.project_name}-dionaea-Honeypot"]
+  allocation_id = aws_eip.honeypot_dionaea.id
+}
+
+resource "aws_eip_association" "custom_honeypot" {
+  instance_id   = module.ec2_az1_public.instance_ids["${var.project_name}-Custom-Honeypot"]
+  allocation_id = aws_eip.honeypot_custom.id
+}
 
 # ============================================
 # EC2 - AZ2 Private

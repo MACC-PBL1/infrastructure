@@ -1,0 +1,70 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Upgrade all packages
+  apt:
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install prerequisites
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - python3-docker
+    state: present
+
+- name: Download Docker installation script
+  get_url:
+    url: https://get.docker.com
+    dest: /tmp/get-docker.sh
+    mode: '0755'
+
+- name: Install Docker
+  command: sh /tmp/get-docker.sh
+  args:
+    creates: /usr/bin/docker
+  notify: restart docker
+
+- name: Add user to docker group
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes
+
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Create dionaea logs directory
+  file:
+    path: "{{ dionaea_log_dir }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: "{{ docker_user }}"
+    mode: '0755'
+
+- name: Deploy Dionaea honeypot container
+  docker_container:
+    name: "{{ dionaea_container_name }}"
+    image: "{{ dionaea_image }}"
+    state: started
+    restart_policy: always
+    published_ports:
+      - "{{ dionaea_port }}:{{ dionaea_port }}"
+    volumes:
+      - "{{ dionaea_log_dir }}:/opt/dionaea/var/log/dionaea"
+    pull: yes
+
+- name: Wait for container to be healthy
+  wait_for:
+    port: "{{ dionaea_port }}"
+    delay: 5
+    timeout: 30
