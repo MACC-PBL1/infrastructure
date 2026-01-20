@@ -61,7 +61,16 @@ resource "aws_security_group" "micro_sg" {
         from_port   = 22
         to_port     = 22
         protocol    = "tcp"
-        cidr_blocks = var.allowed_ssh_cidr
+        cidr_blocks = ["0.0.0.0/0"]
+        #cidr_blocks = var.allowed_ssh_cidr
+    }
+
+    ingress {
+        description = "SSH admin port 2222 Cowrie Honeypot"
+        from_port   = 2222
+        to_port     = 2222
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]  # Cambiar a tu IP si quieres más seguridad
     }
 
     ingress {

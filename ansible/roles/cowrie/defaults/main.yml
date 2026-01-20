@@ -9,6 +9,8 @@ cowrie_real_ssh_port: 2222
 # Puerto donde escuchará el honeypot (los atacantes intentarán conectar aquí)
 cowrie_honeypot_port: 22
 
+cowrie_internal_port: 2223
+
 # Hostname falso que verá el atacante cuando entre al honeypot
 # Lo hacemos parecer un servidor de producción para engañarles
 cowrie_fake_hostname: "prod-order-api"
