@@ -12,3 +12,19 @@ firehose_zeekflowmeter_name: pi-infra-development-user-zeekflowmeter-firehose
 ansible_user: admin
 ansible_ssh_private_key_file: ~/.ssh/labsuser.pem
 
+# NAT necesita forward
+hardening_sysctl:
+  net.ipv4.ip_forward: 1
+  net.ipv4.tcp_syncookies: 1
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv4.conf.default.accept_redirects: 0
+  net.ipv4.conf.all.send_redirects: 0
+  net.ipv4.conf.default.send_redirects: 0
+  net.ipv4.conf.all.rp_filter: 1
+  net.ipv4.conf.default.rp_filter: 1
+  net.ipv4.conf.all.accept_source_route: 0
+  net.ipv4.conf.default.accept_source_route: 0
+
+# SSH ProxyJump requiere forwarding
+hardening_ssh_allow_tcp_forwarding: "yes"
+hardening_ssh_x11_forwarding: "no"

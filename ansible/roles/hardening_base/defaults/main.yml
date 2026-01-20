@@ -3,7 +3,7 @@ hardening_admin_user: "admin"
 
 # SSH hardening
 hardening_ssh_port: 22
-hardening_ssh_allow_tcp_forwarding: "yes"   # En bastion a veces se usa forwarding. Si lo necesitas, pon "yes".
+hardening_ssh_allow_tcp_forwarding: "no"   # En bastion a veces se usa forwarding. Si lo necesitas, pon "yes".
 hardening_ssh_x11_forwarding: "no"
 hardening_ssh_max_auth_tries: 3
 hardening_ssh_client_alive_interval: 300
@@ -20,7 +20,7 @@ hardening_disable_services:
 
 # Sysctl básico (breve y razonable)
 hardening_sysctl:
-  net.ipv4.ip_forward: 1                # OJO: para NAT/Bastion suele ser necesario. Si es otro host, pon 0.
+  net.ipv4.ip_forward: 0                # OJO: para NAT/Bastion suele ser necesario. Si es otro host, pon 0.
   net.ipv4.tcp_syncookies: 1
   net.ipv4.conf.all.accept_redirects: 0
   net.ipv4.conf.default.accept_redirects: 0
