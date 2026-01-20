@@ -12,10 +12,6 @@ resource "aws_launch_template" "ms" {
 
   vpc_security_group_ids = [var.microservices_sg_id]
 
-  user_data = base64encode(
-    file("${path.module}/user_data/${each.value.user_data_file}")
-  )
-
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -25,6 +21,7 @@ resource "aws_launch_template" "ms" {
     }
   }
 }
+
 
 
 resource "aws_autoscaling_group" "ms" {

@@ -14,7 +14,6 @@ variable "cpu_target_utilization" { type = number }
 variable "microservices" {
   description = "Logical microservice groups (one ASG per group)"
   type = map(object({
-    paths          = list(string)
-    user_data_file = string
+    paths = list(string)
   }))
 }

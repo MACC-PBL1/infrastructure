@@ -56,8 +56,7 @@ variable "allowed_ssh_cidr" {
 variable "microservices" {
   description = "Logical microservice groups. One ASG per group."
   type = map(object({
-    paths          = list(string)
-    user_data_file = string
+    paths = list(string)
   }))
 }
 

@@ -37,7 +37,6 @@ microservices = {
       "/order/*",
       "/warehouse/*"
     ]
-    user_data_file = "order_warehouse.sh"
   }
 
   payment-delivery = {
@@ -45,14 +44,12 @@ microservices = {
       "/payment/*",
       "/delivery/*"
     ]
-    user_data_file = "payment_delivery.sh"
   }
 
   machines = {
     paths = [
       "/machines/*"
     ]
-    user_data_file = "machines.sh"
   }
 }
 
