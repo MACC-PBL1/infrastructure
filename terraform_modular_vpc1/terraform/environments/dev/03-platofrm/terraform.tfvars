@@ -20,13 +20,13 @@ db_master_username = "admin"
 peer_vpc_cidr = "10.1.0.0/16"
 
 auth_instance_ips = [
-  "10.1.11.61",
-  "10.1.12.246"
+  "10.1.11.145",
+  "10.1.12.99"
 ]
 
 logs_instance_ips = [
-  "10.1.11.61",
-  "10.1.12.246"
+  "10.1.11.145",
+  "10.1.12.99"
 ]
 lab_role_arn = "arn:aws:iam::512411987939:role/LabRole"
 #lab_role_arn = "arn:aws:iam::975049933544:role/LabRole"
