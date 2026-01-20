@@ -35,6 +35,24 @@ output "dynamodb_table_name" {
 }
 
 # ============================================
+# Elastic IPs de los Honeypots
+# ============================================
+output "cowrie_honeypot_ip" {
+  description = "Elastic IP del honeypot cowrie"
+  value       = aws_eip.honeypot_cowrie.public_ip
+}
+
+output "dionaea_honeypot_ip" {
+  description = "Elastic IP del honeypot dionaea"
+  value       = aws_eip.honeypot_dionaea.public_ip
+}
+
+output "custom_honeypot_ip" {
+  description = "Elastic IP del honeypot custom"
+  value       = aws_eip.honeypot_custom.public_ip
+}
+
+# ============================================
 # CROSS-VPC: Instance IDs para registro en ALB
 # ============================================
 
