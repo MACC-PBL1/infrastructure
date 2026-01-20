@@ -49,12 +49,26 @@
 # authbind permite que el usuario cowrie (no root) escuche en puerto 22
 
 - name: Crear archivo authbind para puerto 22
-  file:
-    path: "/etc/authbind/byport/{{ cowrie_honeypot_port }}"
-    state: touch
+  copy:
+    content: ""
+    dest: "/etc/authbind/byport/22" # Asegúrate que {{ cowrie_honeypot_port }} es 22
     owner: "{{ cowrie_user }}"
     group: "{{ cowrie_group }}"
-    mode: "0755"
+    mode: "0755"  # IMPORTANTE: authbind necesita ser ejecutable
+    force: no
+
+- name: Detener ssh.socket si existe
+  systemd:
+    name: ssh.socket
+    state: stopped
+  ignore_errors: yes
+
+- name: Deshabilitar ssh.socket permanentemente
+  systemd:
+    name: ssh.socket
+    enabled: no
+    masked: yes
+  ignore_errors: yes
 
 # ============================================
 # PARTE 4: Mover SSH real al puerto 2222
@@ -69,49 +83,59 @@
     backup: yes
   notify: Restart SSH
 
+- name: Forzar reinicio de SSH inmediatamente
+  meta: flush_handlers
+
+- name: Esperar a que SSH esté disponible en puerto {{ cowrie_real_ssh_port }}
+  wait_for:
+    port: "{{ cowrie_real_ssh_port }}"
+    host: "{{ inventory_hostname }}"
+    delay: 5
+    timeout: 120
+  delegate_to: localhost
+  become : no
+
 # ============================================
 # PARTE 5: Clonar e instalar Cowrie
 # ============================================
 
 - name: Clonar repositorio cowrie
-  become_user: "{{ cowrie_user }}"
-  git:
-    repo: "{{ cowrie_repo }}"
-    dest: "{{ cowrie_install_dir }}"
-    version: "master"
+  shell: sudo -u {{ cowrie_user }} git clone {{ cowrie_repo }} {{ cowrie_install_dir }}
+  args:
+    creates: "{{ cowrie_install_dir }}/.git"
 
 - name: Crear entorno virtual Python
-  become_user: "{{ cowrie_user }}"
-  command: python3 -m venv {{ cowrie_install_dir }}/cowrie-env
+  shell: sudo -u {{ cowrie_user }} python3 -m venv {{ cowrie_install_dir }}/cowrie-env
   args:
     creates: "{{ cowrie_install_dir }}/cowrie-env/bin/activate"
 
 - name: Actualizar pip en el entorno virtual
-  become_user: "{{ cowrie_user }}"
-  pip:
-    name:
-      - pip
-      - setuptools
-      - wheel
-    state: latest
-    virtualenv: "{{ cowrie_install_dir }}/cowrie-env"
+  shell: |
+    sudo -u {{ cowrie_user }} {{ cowrie_install_dir }}/cowrie-env/bin/pip install --upgrade pip setuptools wheel
+  args:
+    chdir: "{{ cowrie_install_dir }}"
 
-- name: Instalar dependencias de cowrie (requirements.txt)
-  become_user: "{{ cowrie_user }}"
-  pip:
-    requirements: "{{ cowrie_install_dir }}/requirements.txt"
-    virtualenv: "{{ cowrie_install_dir }}/cowrie-env"
+- name: Instalar Cowrie en modo editable
+  shell: |
+    sudo -u {{ cowrie_user }} {{ cowrie_install_dir }}/cowrie-env/bin/pip install -e .
+  args:
+    chdir: "{{ cowrie_install_dir }}"
 
 # ============================================
 # PARTE 6: Configurar Cowrie
 # ============================================
 
 - name: Copiar configuración de cowrie
-  become_user: "{{ cowrie_user }}"
   template:
     src: cowrie.cfg.j2
     dest: "{{ cowrie_install_dir }}/etc/cowrie.cfg"
     mode: "0644"
+
+- name: Cambiar owner de configuración a cowrie
+  file:
+    path: "{{ cowrie_install_dir }}/etc/cowrie.cfg"
+    owner: "{{ cowrie_user }}"
+    group: "{{ cowrie_group }}"
 
 # ============================================
 # PARTE 7: Crear servicio systemd
@@ -133,3 +157,28 @@
     enabled: yes
     state: started
     daemon_reload: yes
+
+- name: Esperar a que Cowrie esté escuchando en puerto {{ cowrie_honeypot_port }}
+  wait_for:
+    port: "{{ cowrie_honeypot_port }}"
+    host: 127.0.0.1
+    delay: 5
+    timeout: 60
+  become: no
+
+- name: Verificar estado de Cowrie
+  systemd:
+    name: cowrie
+    state: started
+  register: cowrie_status
+
+- name: Mostrar estado de Cowrie
+  debug:
+    msg: "Cowrie está {{ 'ACTIVO ✅' if cowrie_status.status.ActiveState == 'active' else 'INACTIVO ❌' }}"
+
+- name: Mostrar información importante
+  debug:
+    msg:
+      - "📁 Logs de Cowrie: {{ cowrie_log_dir }}/cowrie.json"
+      - "⚠️  SSH real ahora está en puerto {{ cowrie_real_ssh_port }}"
+      - "🎯 Honeypot escuchando en puerto {{ cowrie_honeypot_port }}"

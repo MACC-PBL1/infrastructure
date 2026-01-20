@@ -27,6 +27,9 @@ listen_endpoints = tcp:{{ cowrie_honeypot_port }}:interface=0.0.0.0
 # Versión de SSH que simula (parece un Ubuntu real)
 version = SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
 
+# Authbind para usar puerto 22 sin root
+authbind = /usr/bin/authbind
+
 [telnet]
 # Deshabilitamos telnet, solo queremos SSH
 enabled = false

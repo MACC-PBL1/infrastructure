@@ -11,7 +11,7 @@ common_tags = {
 
 allowed_ssh_cidr = ["0.0.0.0/0"]
 
-key_pair_name = "popbl-key"
+key_pair_name = "vockey"
 
 ami_id = "ami-0b6c6ebed2801a5cb"
 
