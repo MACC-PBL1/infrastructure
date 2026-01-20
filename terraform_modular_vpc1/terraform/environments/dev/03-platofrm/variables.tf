@@ -54,10 +54,25 @@ variable "allowed_ssh_cidr" {
 
 # ============ Microservices ============
 variable "microservices" {
-  description = "Logical microservice groups. One ASG per group."
+  description = "Microservices definition. Key is service name."
   type = map(object({
-    paths = list(string)
+    port         = number
+    path_pattern = string
   }))
+  default = {
+    order-warehouse-microservice = {
+        port = 8081
+        path_pattern = "/order/*"
+      }
+      payment-delivery-microservice = {
+        port = 8082
+        path_pattern = "/payment/*"
+      }
+      machines-microservice = {
+        port = 8083
+        path_pattern = "/machines/*"
+      }
+  }
 }
 
 
