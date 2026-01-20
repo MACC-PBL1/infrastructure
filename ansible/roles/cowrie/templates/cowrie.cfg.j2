@@ -1,42 +1,11 @@
-# Cowrie Configuration File
-# Generado por Ansible
-
 [honeypot]
-# Hostname que verá el atacante (parece un servidor real)
-hostname = {{ cowrie_fake_hostname }}
-
-# Directorio de logs
-log_path = {{ cowrie_log_dir }}
-
-# Donde se guardan los archivos maliciosos que suban los atacantes
-download_path = {{ cowrie_install_dir }}/var/lib/cowrie/downloads
-
-# Filesystem falso que verá el atacante
-contents_path = {{ cowrie_install_dir }}/share/cowrie/fs.pickle
-
-# Zona horaria para los logs
-timezone = UTC
+hostname = {{ cowrie_hostname }}
 
 [ssh]
-# Habilitar SSH honeypot
 enabled = true
-
-# Puerto donde escucha (22 = puerto SSH normal)
-listen_endpoints = tcp:{{ cowrie_internal_port }}:interface=0.0.0.0
-
-# Versión de SSH que simula (parece un Ubuntu real)
-version = SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
+listen_endpoints = tcp:{{ cowrie_listen_port }}:interface={{ cowrie_listen_interface }}
+authbind = /usr/bin/authbind
+version = SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1
 
 [telnet]
-# Deshabilitamos telnet, solo queremos SSH
 enabled = false
-
-[output_jsonlog]
-# Logs en formato JSON (fácil de procesar con Fluent Bit después)
-enabled = true
-logfile = {{ cowrie_log_dir }}/cowrie.json
-
-[output_textlog]
-# Logs en texto plano (para leer manualmente)
-enabled = true
-logfile = {{ cowrie_log_dir }}/cowrie.log

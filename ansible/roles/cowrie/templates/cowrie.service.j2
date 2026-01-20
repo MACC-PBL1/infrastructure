@@ -5,21 +5,12 @@ After=network.target
 [Service]
 Type=forking
 User={{ cowrie_user }}
-Group={{ cowrie_group }}
-WorkingDirectory={{ cowrie_install_dir }}
-
-# Variables de entorno estándar
-Environment="PATH={{ cowrie_install_dir }}/cowrie-env/bin:/usr/local/bin:/usr/bin:/bin"
-Environment="VIRTUAL_ENV={{ cowrie_install_dir }}/cowrie-env"
-
-# 🔴 LIMPIEZA TOTAL:
-# Usamos el script estándar del venv. Sin authbind, sin sudo, sin líos.
-ExecStart={{ cowrie_install_dir }}/cowrie-env/bin/cowrie start
-ExecStop={{ cowrie_install_dir }}/cowrie-env/bin/cowrie stop
-
+WorkingDirectory={{ cowrie_home }}/cowrie
+Environment="PATH={{ cowrie_home }}/cowrie/cowrie-env/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/usr/bin/authbind --deep {{ cowrie_home }}/cowrie/cowrie-env/bin/cowrie start
+ExecStop={{ cowrie_home }}/cowrie/cowrie-env/bin/cowrie stop
 Restart=on-failure
-RestartSec=10
-PIDFile={{ cowrie_install_dir }}/var/run/cowrie.pid
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

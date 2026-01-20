@@ -48,13 +48,13 @@ module "ec2_az1_public" {
   key_name = var.key_pair_name
 
   instances = {
-    "${var.project_name}-Opensource-Honeypot" = {
+    "${var.project_name}-cowrie-Honeypot" = {
       instance_type = var.instance_type_public
       subnet_id     = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
       public_ip     = true
       user_data = local.docker_git_user_data
     }
-    "${var.project_name}-Opensource1-Honeypot" = {
+    "${var.project_name}-dionaea-Honeypot" = {
       instance_type = var.instance_type_public
       subnet_id     = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
       public_ip     = true

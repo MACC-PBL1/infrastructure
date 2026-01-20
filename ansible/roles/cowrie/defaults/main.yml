@@ -1,26 +1,18 @@
 ---
-# Usuario del sistema que ejecutará cowrie (no root por seguridad)
 cowrie_user: cowrie
-cowrie_group: cowrie
+cowrie_home: /home/cowrie
+cowrie_repo: https://github.com/cowrie/cowrie.git
+cowrie_hostname: prod-order-api
+cowrie_listen_port: 22
+cowrie_listen_interface: 0.0.0.0
+ssh_real_port: 2222
 
-# Puerto donde MOVEREMOS el SSH real (para que tú puedas seguir conectándote)
-cowrie_real_ssh_port: 2222
-
-# Puerto donde escuchará el honeypot (los atacantes intentarán conectar aquí)
-cowrie_honeypot_port: 22
-
-cowrie_internal_port: 2223
-
-# Hostname falso que verá el atacante cuando entre al honeypot
-# Lo hacemos parecer un servidor de producción para engañarles
-cowrie_fake_hostname: "prod-order-api"
-
-# Directorios de instalación
-cowrie_home: "/home/{{ cowrie_user }}"
-cowrie_install_dir: "{{ cowrie_home }}/cowrie"
-
-# Donde se guardan los logs de ataques (esto es lo que analizaremos después)
-cowrie_log_dir: "{{ cowrie_install_dir }}/var/log/cowrie"
-
-# Repositorio oficial de cowrie
-cowrie_repo: "https://github.com/cowrie/cowrie.git"
+# Dependencias del sistema
+cowrie_system_packages:
+  - python3-pip
+  - python3-venv
+  - git
+  - openssl
+  - libssl-dev
+  - zlib1g-dev
+  - authbind
