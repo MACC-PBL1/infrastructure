@@ -8,19 +8,17 @@ User={{ cowrie_user }}
 Group={{ cowrie_group }}
 WorkingDirectory={{ cowrie_install_dir }}
 
-# Variables de entorno necesarias
+# Variables de entorno estándar
 Environment="PATH={{ cowrie_install_dir }}/cowrie-env/bin:/usr/local/bin:/usr/bin:/bin"
 Environment="VIRTUAL_ENV={{ cowrie_install_dir }}/cowrie-env"
 
-# 🚨 Usar el comando 'cowrie start' igual que manualmente
-ExecStart=/usr/bin/authbind --deep {{ cowrie_install_dir }}/cowrie-env/bin/cowrie start
+# 🔴 LIMPIEZA TOTAL:
+# Usamos el script estándar del venv. Sin authbind, sin sudo, sin líos.
+ExecStart={{ cowrie_install_dir }}/cowrie-env/bin/cowrie start
 ExecStop={{ cowrie_install_dir }}/cowrie-env/bin/cowrie stop
 
-# Si falla, reiniciar automáticamente
 Restart=on-failure
 RestartSec=10
-
-# Archivos PID
 PIDFile={{ cowrie_install_dir }}/var/run/cowrie.pid
 
 [Install]
