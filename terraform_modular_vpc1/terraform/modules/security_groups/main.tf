@@ -99,7 +99,6 @@ resource "aws_vpc_security_group_egress_rule" "alb_egress" {
 }
 
 # ============ MICROSERVICES (PRIVATE) ============
-# ============ MICROSERVICES (PRIVATE) ============
 resource "aws_security_group" "microservices" {
   name_prefix = "${var.name_prefix}-ms-"
   description = "Security group for microservices instances"
@@ -125,18 +124,20 @@ resource "aws_vpc_security_group_ingress_rule" "ms_ssh_from_bastion" {
   }
 }
 
-# HTTPS from ALB (HAProxy)
-resource "aws_vpc_security_group_ingress_rule" "ms_from_alb_https" {
+# App ports from ALB
+resource "aws_vpc_security_group_ingress_rule" "ms_from_alb_ports" {
+  for_each = var.microservices
+
   security_group_id            = aws_security_group.microservices.id
   referenced_security_group_id = aws_security_group.alb.id
 
-  description = "HTTPS from ALB to microservices (HAProxy)"
-  from_port   = 443
-  to_port     = 443
+  description = "App port ${each.key} from ALB"
+  from_port   = each.value.port
+  to_port     = each.value.port
   ip_protocol = "tcp"
 
   tags = {
-    Name = "HTTPS-FROM-ALB"
+    Name = "APP-${each.key}"
   }
 }
 
@@ -155,7 +156,7 @@ resource "aws_vpc_security_group_ingress_rule" "ms_from_peer_vpc" {
   }
 }
 
-# Egress all
+# Egress all (internet via NAT + RDS)
 resource "aws_vpc_security_group_egress_rule" "ms_egress" {
   security_group_id = aws_security_group.microservices.id
 
@@ -197,19 +198,4 @@ resource "aws_vpc_security_group_egress_rule" "rds_egress" {
   description = "Allow all outbound"
   ip_protocol = "-1"
   cidr_ipv4   = "0.0.0.0/0"
-}
-
-# ============ LAMBDA -> RDS ============
-resource "aws_vpc_security_group_ingress_rule" "rds_from_lambda" {
-  security_group_id = aws_security_group.rds.id
-
-  description = "MySQL from Lambda functions"
-  from_port   = 3306
-  to_port     = 3306
-  ip_protocol = "tcp"
-  cidr_ipv4   = var.vpc_cidr
-
-  tags = {
-    Name = "MYSQL-FROM-LAMBDA"
-  }
 }

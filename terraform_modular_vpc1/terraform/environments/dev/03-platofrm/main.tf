@@ -125,6 +125,10 @@ module "alb" {
 # =========================
 # Microservices (ASGs)
 # =========================
+
+# =========================
+# Microservices (ASGs)
+# =========================
 module "microservices" {
   source = "../../../modules/microservices"
 
@@ -152,7 +156,6 @@ resource "random_password" "rds_master" {
 
   override_special = "!#$%&()*+,-.:;<=>?[]^_{|}~"
 }
-
 
 # =========================
 # KMS (for RDS encryption)

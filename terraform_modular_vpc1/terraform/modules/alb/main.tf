@@ -14,11 +14,6 @@ resource "aws_lb" "internal" {
   }
 }
 
-###############################################
-# ALB LISTENER (HTTP)
-# 👉 ALB escucha en 80 y forwardea a HTTPS 443
-###############################################
-
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.internal.arn
   port              = 80
@@ -34,11 +29,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-###############################################
-# Target Groups (1 por EC2 / ASG)
-# 👉 Backend SIEMPRE HTTPS :443 (HAProxy)
-###############################################
-
+# One target group per microservice
 locals {
   tg_base_names = {
     for k, v in var.microservices :
@@ -54,13 +45,12 @@ resource "aws_lb_target_group" "ms" {
   for_each = var.microservices
 
   name        = "${local.tg_base_names[each.key]}-tg"
-  port        = 443
-  protocol    = "HTTPS"
+  port        = each.value.port
+  protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "instance"
 
   health_check {
-    protocol            = "HTTPS"
     path                = "/health"
     healthy_threshold   = 2
     unhealthy_threshold = 2
@@ -73,10 +63,6 @@ resource "aws_lb_target_group" "ms" {
     Name = "${var.name_prefix}-${each.key}-tg"
   }
 }
-
-###############################################
-# Auth + Logs peer target groups (SIN CAMBIOS)
-###############################################
 
 resource "aws_lb_target_group" "auth" {
   name        = "auth-peer-tg"
@@ -106,8 +92,9 @@ resource "aws_lb_target_group_attachment" "auth_instances" {
   for_each = toset(var.auth_instance_ips)
 
   target_group_arn = aws_lb_target_group.auth.arn
-  target_id        = each.value
+  target_id        = each.value   # IP PRIVADA
   port             = 8080
+
   availability_zone = "all"
 }
 
@@ -115,53 +102,30 @@ resource "aws_lb_target_group_attachment" "logs_instances" {
   for_each = toset(var.logs_instance_ips)
 
   target_group_arn = aws_lb_target_group.logs.arn
-  target_id        = each.value
+  target_id        = each.value   # IP PRIVADA
   port             = 8080
+
   availability_zone = "all"
 }
 
-###############################################
-# Listener rules (MULTI-PATH → MISMA EC2)
-###############################################
-
-locals {
-  service_paths = flatten([
-    for svc, cfg in var.microservices : [
-      for p in cfg.paths : {
-        service = svc
-        path    = p
-      }
-    ]
-  ])
-}
-
+# Listener rules (path-based routing)
 resource "aws_lb_listener_rule" "ms" {
-  for_each = {
-    for idx, item in local.service_paths :
-    "${item.service}-${idx}" => item
-  }
+  for_each = var.microservices
 
   listener_arn = aws_lb_listener.http.arn
-  priority     = 10 + index(keys({
-    for i, v in local.service_paths :
-    "${v.service}-${i}" => v
-  }), each.key)
+  priority     = 10 + index(keys(var.microservices), each.key)
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.ms[each.value.service].arn
+    target_group_arn = aws_lb_target_group.ms[each.key].arn
   }
 
   condition {
     path_pattern {
-      values = [each.value.path]
+      values = [each.value.path_pattern]
     }
   }
 }
-
-###############################################
-# Auth / Logs rules
-###############################################
 
 resource "aws_lb_listener_rule" "auth" {
   listener_arn = aws_lb_listener.http.arn

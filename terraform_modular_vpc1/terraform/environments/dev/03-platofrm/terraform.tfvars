@@ -20,36 +20,12 @@ db_master_username = "admin"
 peer_vpc_cidr = "10.1.0.0/16"
 
 auth_instance_ips = [
-  "10.1.11.145",
-  "10.1.12.99"
+  "10.1.11.47",
+  "10.1.12.217"
 ]
 
 logs_instance_ips = [
-  "10.1.11.145",
-  "10.1.12.99"
+  "10.1.11.47",
+  "10.1.12.217"
 ]
 lab_role_arn = "arn:aws:iam::512411987939:role/LabRole"
-#lab_role_arn = "arn:aws:iam::975049933544:role/LabRole"
-
-microservices = {
-  order-warehouse = {
-    paths = [
-      "/order/*",
-      "/warehouse/*"
-    ]
-  }
-
-  payment-delivery = {
-    paths = [
-      "/payment/*",
-      "/delivery/*"
-    ]
-  }
-
-  machines = {
-    paths = [
-      "/machines/*"
-    ]
-  }
-}
-

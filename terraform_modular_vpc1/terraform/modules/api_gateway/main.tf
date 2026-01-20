@@ -11,10 +11,7 @@ resource "aws_apigatewayv2_api" "http" {
   }
 }
 
-###############################################
-# VPC Link
-###############################################
-
+# VPC Link uses private subnets (ENIs in your VPC)
 resource "aws_apigatewayv2_vpc_link" "link" {
   name               = "${var.name_prefix}-vpc-link"
   security_group_ids = [var.vpc_link_sg_id]
@@ -25,10 +22,6 @@ resource "aws_apigatewayv2_vpc_link" "link" {
   }
 }
 
-###############################################
-# Integration (ALB)
-###############################################
-
 resource "aws_apigatewayv2_integration" "alb" {
   api_id             = aws_apigatewayv2_api.http.id
   integration_type   = "HTTP_PROXY"
@@ -37,50 +30,27 @@ resource "aws_apigatewayv2_integration" "alb" {
   connection_type = "VPC_LINK"
   connection_id   = aws_apigatewayv2_vpc_link.link.id
 
-  integration_uri         = var.alb_listener_arn
+  # Private integration to ALB (listener ARN)
+  integration_uri        = var.alb_listener_arn
   payload_format_version = "1.0"
   timeout_milliseconds   = 30000
 }
 
-###############################################
-# Dynamic routes (MULTI-PATH)
-###############################################
-
-locals {
-  api_paths = flatten([
-    for svc, cfg in var.microservices : [
-      for p in cfg.paths : {
-        service = svc
-        path    = replace(p, "/*", "/{proxy+}")
-      }
-    ]
-  ])
-}
-
+# Routes: /svc1/{proxy+}, /svc2/{proxy+}, /svc3/{proxy+}
 resource "aws_apigatewayv2_route" "svc" {
-  for_each = {
-    for idx, item in local.api_paths :
-    "${item.service}-${idx}" => item
-  }
+  for_each = var.microservices
 
   api_id    = aws_apigatewayv2_api.http.id
-  route_key = "ANY ${each.value.path}"
+  route_key = "ANY /${each.key}/{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.alb.id}"
 }
 
-###############################################
 # Default catch-all
-###############################################
-
 resource "aws_apigatewayv2_route" "default" {
   api_id    = aws_apigatewayv2_api.http.id
   route_key = "ANY /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.alb.id}"
 }
-
-###############################################
-# Stage
-###############################################
 
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.http.id
