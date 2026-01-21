@@ -1,107 +1,4 @@
-# ---
-# - name: Actualizar cache de paquetes
-#   apt:
-#     update_cache: yes
-
-# - name: Actualizar sistema
-#   apt:
-#     upgrade: yes
-
-# - name: Instalar dependencias del sistema
-#   apt:
-#     name: "{{ cowrie_system_packages }}"
-#     state: present
-
-# - name: Crear usuario cowrie
-#   user:
-#     name: "{{ cowrie_user }}"
-#     shell: /bin/bash
-#     create_home: yes
-
-# - name: Configurar authbind
-#   file:
-#     path: /etc/authbind/byport
-#     state: directory
-#     mode: '0755'
-
-# - name: Configurar authbind para puerto 22
-#   file:
-#     path: "/etc/authbind/byport/{{ cowrie_listen_port }}"
-#     state: touch
-#     owner: "{{ cowrie_user }}"
-#     group: "{{ cowrie_user }}"
-#     mode: '0755'
-
-# - name: Copiar script de instalación
-#   copy:
-#     src: install_cowrie.sh
-#     dest: /tmp/install_cowrie.sh
-#     mode: '0755'
-
-# - name: Ejecutar instalación de Cowrie
-#   shell: /tmp/install_cowrie.sh
-#   args:
-#     creates: /home/cowrie/cowrie/cowrie-env
-
-# - name: Copiar archivos honeyfs de ejemplo
-#   shell: |
-#     if [ -d /home/cowrie/cowrie/honeyfs.example ] && [ ! -f /home/cowrie/cowrie/honeyfs/etc/passwd ]; then
-#       cp -r /home/cowrie/cowrie/honeyfs.example/* /home/cowrie/cowrie/honeyfs/ 2>/dev/null || true
-#       chown -R cowrie:cowrie /home/cowrie/cowrie/honeyfs
-#     fi
-
-# - name: Configurar Cowrie
-#   template:
-#     src: cowrie.cfg.j2
-#     dest: "{{ cowrie_home }}/cowrie/etc/cowrie.cfg"
-#     owner: "{{ cowrie_user }}"
-#     group: "{{ cowrie_user }}"
-#     mode: '0644'
-
-# - name: Cambiar puerto SSH real
-#   lineinfile:
-#     path: /etc/ssh/sshd_config
-#     regexp: '^#?Port\s+'
-#     line: "Port {{ ssh_real_port }}"
-
-# - name: Reiniciar SSH en segundo plano
-#   shell: "nohup bash -c 'sleep 2 && systemctl restart ssh' >/dev/null 2>&1 &"
-#   args:
-#     executable: /bin/bash
-
-# - name: Esperar a que SSH se reinicie
-#   pause:
-#     seconds: 10
-
-# - name: Crear servicio systemd para Cowrie
-#   template:
-#     src: cowrie.service.j2
-#     dest: /etc/systemd/system/cowrie.service
-#     owner: root
-#     group: root
-#     mode: '0644'
-
-# - name: Recargar systemd daemon
-#   systemd:
-#     daemon_reload: yes
-
-# - name: Detener cowrie si está corriendo manualmente
-#   shell: |
-#     su - cowrie -c "cd /home/cowrie/cowrie && cowrie-env/bin/cowrie stop 2>/dev/null" || true
-#   ignore_errors: yes
-
-# - name: Habilitar e iniciar servicio Cowrie
-#   systemd:
-#     name: cowrie
-#     enabled: yes
-#     state: started
-
-
 ---
-# ===========================
-# 1️⃣ Actualización e instalación
-# ===========================
-
 - name: Actualizar cache de paquetes
   apt:
     update_cache: yes
@@ -135,10 +32,6 @@
     group: "{{ cowrie_user }}"
     mode: '0755'
 
-# ===========================
-# 2️⃣ Instalación de Cowrie
-# ===========================
-
 - name: Copiar script de instalación
   copy:
     src: install_cowrie.sh
@@ -148,13 +41,13 @@
 - name: Ejecutar instalación de Cowrie
   shell: /tmp/install_cowrie.sh
   args:
-    creates: "{{ cowrie_home }}/cowrie/cowrie-env"
+    creates: /home/cowrie/cowrie/cowrie-env
 
 - name: Copiar archivos honeyfs de ejemplo
   shell: |
-    if [ -d "{{ cowrie_home }}/cowrie/honeyfs.example" ] && [ ! -f "{{ cowrie_home }}/cowrie/honeyfs/etc/passwd" ]; then
-      cp -r {{ cowrie_home }}/cowrie/honeyfs.example/* {{ cowrie_home }}/cowrie/honeyfs/ 2>/dev/null || true
-      chown -R {{ cowrie_user }}:{{ cowrie_user }} {{ cowrie_home }}/cowrie/honeyfs
+    if [ -d /home/cowrie/cowrie/honeyfs.example ] && [ ! -f /home/cowrie/cowrie/honeyfs/etc/passwd ]; then
+      cp -r /home/cowrie/cowrie/honeyfs.example/* /home/cowrie/cowrie/honeyfs/ 2>/dev/null || true
+      chown -R cowrie:cowrie /home/cowrie/cowrie/honeyfs
     fi
 
 - name: Configurar Cowrie
@@ -165,50 +58,20 @@
     group: "{{ cowrie_user }}"
     mode: '0644'
 
-# ===========================
-# 3️⃣ Configuración SSH y puertos
-# ===========================
-
-- name: Habilitar SSH en 22 y {{ ssh_real_port }} temporalmente
+- name: Cambiar puerto SSH real
   lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^Port '
-    line: |
-      Port 22
-      Port {{ ssh_real_port }}
-    create: no
+    regexp: '^#?Port\s+'
+    line: "Port {{ ssh_real_port }}"
 
-- name: Reiniciar SSH para aplicar cambios
-  service:
-    name: ssh
-    state: restarted
+- name: Reiniciar SSH en segundo plano
+  shell: "nohup bash -c 'sleep 2 && systemctl restart ssh' >/dev/null 2>&1 &"
+  args:
+    executable: /bin/bash
 
-- name: Esperar a que SSH en nuevo puerto {{ ssh_real_port }} esté disponible
-  wait_for:
-    host: "{{ inventory_hostname }}"
-    port: "{{ ssh_real_port }}"
-    timeout: 30
-
-- name: Cambiar conexión de Ansible al nuevo puerto
-  set_fact:
-    ansible_port: "{{ ssh_real_port }}"
-
-- meta: reset_connection
-
-- name: Quitar puerto 22 del SSH real
-  lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^Port 22'
-    state: absent
-
-- name: Reiniciar SSH definitivamente en {{ ssh_real_port }}
-  service:
-    name: ssh
-    state: restarted
-
-# ===========================
-# 4️⃣ Arranque final de Cowrie
-# ===========================
+- name: Esperar a que SSH se reinicie
+  pause:
+    seconds: 10
 
 - name: Crear servicio systemd para Cowrie
   template:
@@ -224,7 +87,7 @@
 
 - name: Detener cowrie si está corriendo manualmente
   shell: |
-    su - {{ cowrie_user }} -c "cd {{ cowrie_home }}/cowrie && cowrie-env/bin/cowrie stop 2>/dev/null" || true
+    su - cowrie -c "cd /home/cowrie/cowrie && cowrie-env/bin/cowrie stop 2>/dev/null" || true
   ignore_errors: yes
 
 - name: Habilitar e iniciar servicio Cowrie
