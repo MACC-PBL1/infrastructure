@@ -13,9 +13,9 @@
     name: cowrie
     state: restarted
 
-- name: restart ssh
-  systemd:
-    name: ssh
-    state: restarted
-  async: 0
-  poll: 0
+# - name: restart ssh
+#   systemd:
+#     name: ssh
+#     state: restarted
+#   async: 0
+#   poll: 0
