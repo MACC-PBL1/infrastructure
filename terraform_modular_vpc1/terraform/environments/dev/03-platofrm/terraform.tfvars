@@ -15,7 +15,6 @@ asg_max_size         = 4
 cpu_target_utilization = 60
 
 db_name            = "appdb"
-db_master_username = "admin"
 
 peer_vpc_cidr = "10.1.0.0/16"
 
