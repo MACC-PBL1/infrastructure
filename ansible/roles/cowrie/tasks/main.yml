@@ -98,6 +98,10 @@
 
 
 ---
+# ===========================
+# 1️⃣ Actualización e instalación
+# ===========================
+
 - name: Actualizar cache de paquetes
   apt:
     update_cache: yes
@@ -131,6 +135,10 @@
     group: "{{ cowrie_user }}"
     mode: '0755'
 
+# ===========================
+# 2️⃣ Instalación de Cowrie
+# ===========================
+
 - name: Copiar script de instalación
   copy:
     src: install_cowrie.sh
@@ -140,13 +148,13 @@
 - name: Ejecutar instalación de Cowrie
   shell: /tmp/install_cowrie.sh
   args:
-    creates: /home/cowrie/cowrie/cowrie-env
+    creates: "{{ cowrie_home }}/cowrie/cowrie-env"
 
 - name: Copiar archivos honeyfs de ejemplo
   shell: |
-    if [ -d /home/cowrie/cowrie/honeyfs.example ] && [ ! -f /home/cowrie/cowrie/honeyfs/etc/passwd ]; then
-      cp -r /home/cowrie/cowrie/honeyfs.example/* /home/cowrie/cowrie/honeyfs/ 2>/dev/null || true
-      chown -R cowrie:cowrie /home/cowrie/cowrie/honeyfs
+    if [ -d "{{ cowrie_home }}/cowrie/honeyfs.example" ] && [ ! -f "{{ cowrie_home }}/cowrie/honeyfs/etc/passwd" ]; then
+      cp -r {{ cowrie_home }}/cowrie/honeyfs.example/* {{ cowrie_home }}/cowrie/honeyfs/ 2>/dev/null || true
+      chown -R {{ cowrie_user }}:{{ cowrie_user }} {{ cowrie_home }}/cowrie/honeyfs
     fi
 
 - name: Configurar Cowrie
@@ -157,11 +165,11 @@
     group: "{{ cowrie_user }}"
     mode: '0644'
 
-# -------------------------------
-# NUEVO BLOQUE: SSH y puertos
-# -------------------------------
+# ===========================
+# 3️⃣ Configuración SSH y puertos
+# ===========================
 
-- name: Habilitar SSH en 22 y 2222 temporalmente
+- name: Habilitar SSH en 22 y {{ ssh_real_port }} temporalmente
   lineinfile:
     path: /etc/ssh/sshd_config
     regexp: '^Port '
@@ -175,7 +183,7 @@
     name: ssh
     state: restarted
 
-- name: Esperar a que SSH en nuevo puerto esté disponible
+- name: Esperar a que SSH en nuevo puerto {{ ssh_real_port }} esté disponible
   wait_for:
     host: "{{ inventory_hostname }}"
     port: "{{ ssh_real_port }}"
@@ -198,9 +206,9 @@
     name: ssh
     state: restarted
 
-# -------------------------------
-# Arranque final de Cowrie
-# -------------------------------
+# ===========================
+# 4️⃣ Arranque final de Cowrie
+# ===========================
 
 - name: Crear servicio systemd para Cowrie
   template:
@@ -216,7 +224,7 @@
 
 - name: Detener cowrie si está corriendo manualmente
   shell: |
-    su - cowrie -c "cd /home/cowrie/cowrie && cowrie-env/bin/cowrie stop 2>/dev/null" || true
+    su - {{ cowrie_user }} -c "cd {{ cowrie_home }}/cowrie && cowrie-env/bin/cowrie stop 2>/dev/null" || true
   ignore_errors: yes
 
 - name: Habilitar e iniciar servicio Cowrie
@@ -224,3 +232,4 @@
     name: cowrie
     enabled: yes
     state: started
+
