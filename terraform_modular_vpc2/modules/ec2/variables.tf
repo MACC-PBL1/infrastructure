@@ -5,6 +5,7 @@ variable "instances" {
         public_ip     = bool
         private_ip    = optional(string)
         user_data     = optional(string)
+        iam_instance_profile = optional(string)
     }))
 }
 
