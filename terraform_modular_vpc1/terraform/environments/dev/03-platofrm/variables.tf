@@ -43,7 +43,7 @@ variable "microservice_instance_type" {
 variable "key_pair_name" {
   description = "EC2 Key Pair name for SSH access"
   type        = string
-  default     = "vockey"
+  default     = "labsuser"
 }
 
 variable "allowed_ssh_cidr" {

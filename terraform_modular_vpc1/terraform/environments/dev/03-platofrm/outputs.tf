@@ -53,4 +53,12 @@ output "grafana_instance_id" {
   description = "Grafana instance ID"
   value       = module.grafana.instance_id
 }
-#
+
+output "sns_alerts_topic_arn" {
+  description = "ARN del tópico SNS para alertas de exfiltración"
+  value       = aws_sns_topic.alerts.arn
+}
+
+output "final_topic_arn" {
+  value = module.security_notifications.sns_topic_arn
+}

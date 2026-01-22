@@ -17,7 +17,7 @@ availability_zones = ["us-east-1a", "us-east-1b"]
 ############################################
 # SSH / Access
 ############################################
-key_pair_name     = "vockey"
+key_pair_name     = "labsuser"
 allowed_ssh_cidr  = "0.0.0.0/0"
 #En prod real IP: "X.X.X.X/32"
 

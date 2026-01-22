@@ -3,7 +3,7 @@ environment  = "development"
 project_name = "pi-infra"
 username     = "user"
 
-key_pair_name = "vockey"
+key_pair_name = "labsuser"
 allowed_ssh_cidr = "0.0.0.0/0"
 
 nat_bastion_instance_type = "t2.micro"

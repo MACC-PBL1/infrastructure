@@ -387,8 +387,8 @@ resource "aws_cloudwatch_log_group" "zeek_merger" {
 # EventBridge Rule (every 5 minutes)
 resource "aws_cloudwatch_event_rule" "zeek_merger_schedule" {
   name                = "${local.name_prefix}-zeek-merger-schedule"
-  description         = "Trigger Zeek log merger every 5 minutes"
-  schedule_expression = "rate(5 minutes)"
+  description         = "Trigger Zeek log merger every 1 minutes"
+  schedule_expression = "rate(1 minutes)"
   tags                = var.common_tags
 }
 
@@ -479,7 +479,19 @@ module "lambda_exfiltration_detector" {
   ]
 }
 
-output "sns_alerts_topic_arn" {
-  description = "ARN del tópico SNS para alertas de exfiltración"
-  value       = aws_sns_topic.alerts.arn
+
+
+provider "aws" {
+  region = "us-east-1"
 }
+
+# Llamada al módulo SNS
+module "security_notifications" {
+  source = "../../../modules/sns"
+
+  # Pasamos los valores a las variables definidas en variables.tf
+  topic_name    = "security-alerts"
+  #email_address = "gorka.fernandezg@alumni.mondragon.edu"
+  email_address = "oier.fernandezg@alumni.mondragon.edu"
+}
+
