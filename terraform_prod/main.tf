@@ -91,3 +91,31 @@ module "rds" {
 
   instance_class = var.rds_instance_class
 }
+
+############################################
+# Secrets Manager - SSL certificates
+############################################
+module "ssl_secrets" {
+  source = "./modules/secrets_manager"
+
+  name_prefix = var.name_prefix
+  secret_name = "pi-infra-microservices-ssl"
+
+  description = "TLS/SSL certificates and keys for internal microservices and HAProxy"
+
+  secret_value = {
+    "ca_cert.pem"         = file("${path.module}/ssl/ca_cert.pem")
+    "ca_cert.srl"         = file("${path.module}/ssl/ca_cert.srl")
+    "ca_key.pem"          = file("${path.module}/ssl/ca_key.pem")
+
+    "client_cert.pem"     = file("${path.module}/ssl/client_cert.pem")
+    "client_key.pem"      = file("${path.module}/ssl/client_key.pem")
+    "client_req.pem"      = file("${path.module}/ssl/client_req.pem")
+
+    "haproxy_server.pem"  = file("${path.module}/ssl/haproxy_server.pem")
+
+    "server_cert.pem"     = file("${path.module}/ssl/server_cert.pem")
+    "server_key.pem"      = file("${path.module}/ssl/server_key.pem")
+    "server_req.pem"      = file("${path.module}/ssl/server_req.pem")
+  }
+}

@@ -72,3 +72,11 @@ output "rds_db_name" {
   description = "RDS database name"
   value       = module.rds.rds_db_name
 }
+
+
+############################################
+# Secrets
+############################################
+output "ssl_secret_name" {
+  value = module.ssl_secrets.secret_name
+}
