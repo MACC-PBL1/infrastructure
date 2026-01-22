@@ -331,3 +331,79 @@ module "lambda_logs_to_db" {
     module.logs_s3
   ]
 }
+
+# =========================
+# Lambda - Zeek Logs Merger
+# =========================
+
+# Create S3 folders for log merger (if using same bucket)
+resource "aws_s3_object" "log_merger_folders" {
+  for_each = toset([
+    "conn/",
+    "flowmeter/",
+    "processed/",
+    "merged-logs/",
+    "state/"
+  ])
+
+  bucket  = module.logs_s3.bucket_name
+  key     = each.value
+  content = ""
+}
+
+module "lambda_zeek_merger" {
+  source = "../../../modules/lambda"
+
+  function_name    = "${local.name_prefix}-zeek-logs-merger"
+  source_code_path = "${path.module}/lambda_functions/zeek_logs_merger"
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.12"
+  timeout          = 300
+  memory_size      = 512
+
+  use_existing_role  = true
+  existing_role_arn  = var.lab_role_arn
+
+  # Dummy S3 values (required by module but won't be used for trigger)
+  s3_bucket_arn    = module.logs_s3.bucket_arn
+  s3_bucket_id     = module.logs_s3.bucket_name
+  s3_filter_prefix = "dummy/"
+  s3_filter_suffix = ""
+
+  environment_variables = {
+    BUCKET_NAME = module.logs_s3.bucket_name
+  }
+
+  tags = var.common_tags
+}
+
+# CloudWatch Log Group for merger
+resource "aws_cloudwatch_log_group" "zeek_merger" {
+  name              = "/aws/lambda/${module.lambda_zeek_merger.function_name}"
+  retention_in_days = 7
+  tags              = var.common_tags
+}
+
+# EventBridge Rule (every 5 minutes)
+resource "aws_cloudwatch_event_rule" "zeek_merger_schedule" {
+  name                = "${local.name_prefix}-zeek-merger-schedule"
+  description         = "Trigger Zeek log merger every 5 minutes"
+  schedule_expression = "rate(5 minutes)"
+  tags                = var.common_tags
+}
+
+# EventBridge Target
+resource "aws_cloudwatch_event_target" "zeek_merger" {
+  rule      = aws_cloudwatch_event_rule.zeek_merger_schedule.name
+  target_id = "ZeekLogsMerger"
+  arn       = module.lambda_zeek_merger.function_arn
+}
+
+# Lambda permission for EventBridge
+resource "aws_lambda_permission" "allow_eventbridge_merger" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = module.lambda_zeek_merger.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.zeek_merger_schedule.arn
+}

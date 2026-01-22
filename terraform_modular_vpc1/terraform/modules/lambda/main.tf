@@ -53,6 +53,7 @@ resource "aws_lambda_permission" "allow_s3" {
 # 4. S3 Bucket Notification
 # =========================
 resource "aws_s3_bucket_notification" "lambda_trigger" {
+  count  = var.enable_s3_trigger ? 1 : 0
   bucket = var.s3_bucket_id
 
   lambda_function {
