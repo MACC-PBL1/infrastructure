@@ -150,3 +150,9 @@ variable "lab_role_arn" {
   description = "ARN del LabRole reutilizado por Firehose"
   type        = string
 }
+
+variable "email_subscription" {
+  description = "Correo electrónico para recibir alertas de seguridad"
+  type        = string
+  default     = "gorka.fernandezg@alumni.mondragon.edu"
+}

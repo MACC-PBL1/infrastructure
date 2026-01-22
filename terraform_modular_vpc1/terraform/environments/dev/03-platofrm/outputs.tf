@@ -62,3 +62,9 @@ output "sns_alerts_topic_arn" {
 output "final_topic_arn" {
   value = module.security_notifications.sns_topic_arn
 }
+
+output "exfiltration_lambda_name" {
+  description = "Nombre de la función Lambda de detección"
+  value       = module.lambda_exfiltration_detector.function_name 
+  # Nota: Asegúrate de que tu módulo ../modules/lambda tenga un output "function_name"
+}

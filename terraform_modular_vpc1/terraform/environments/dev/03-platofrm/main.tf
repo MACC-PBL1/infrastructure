@@ -479,19 +479,11 @@ module "lambda_exfiltration_detector" {
   ]
 }
 
-
-
-provider "aws" {
-  region = "us-east-1"
-}
-
 # Llamada al módulo SNS
 module "security_notifications" {
   source = "../../../modules/sns"
 
-  # Pasamos los valores a las variables definidas en variables.tf
   topic_name    = "security-alerts"
-  #email_address = "gorka.fernandezg@alumni.mondragon.edu"
-  email_address = "oier.fernandezg@alumni.mondragon.edu"
+  email_address = "gorka.fernandezg@alumni.mondragon.edu"
 }
 
