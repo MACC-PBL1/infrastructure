@@ -407,3 +407,79 @@ resource "aws_lambda_permission" "allow_eventbridge_merger" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.zeek_merger_schedule.arn
 }
+
+# ========================================================
+# Lambda - Exfiltration Detector (Implementation from PDF)
+# ========================================================
+
+# 1. SNS Topic for Alerts
+resource "aws_sns_topic" "alerts" {
+  name = "${local.name_prefix}-security-alerts"
+  tags = var.common_tags
+}
+
+# 2. Upload Layer Zip to S3 (SOLUCIÓN AL ERROR DE TAMAÑO)
+resource "aws_s3_object" "layer_zip" {
+  bucket = module.logs_s3.bucket_name
+  key    = "layers/dependencies.zip"
+  source = "${path.module}/layers/dependencies.zip"
+  
+  # Esto detecta si el archivo cambió para volver a subirlo
+  etag   = filemd5("${path.module}/layers/dependencies.zip") 
+}
+
+# 3. Create Lambda Layer from S3
+resource "aws_lambda_layer_version" "exfiltration_deps" {
+  # En lugar de subirlo directo (filename), apuntamos a S3
+  s3_bucket           = module.logs_s3.bucket_name
+  s3_key              = aws_s3_object.layer_zip.key
+  s3_object_version   = aws_s3_object.layer_zip.version_id
+
+  layer_name          = "${local.name_prefix}-exfiltration-deps"
+  compatible_runtimes = ["python3.11"]
+  description         = "Dependencies: pandas, numpy, joblib"
+}
+
+# 4. Lambda Module Call
+module "lambda_exfiltration_detector" {
+  source = "../../../modules/lambda"
+
+  function_name    = "${local.name_prefix}-exfiltration-detector"
+  source_code_path = "${path.module}/lambda_functions/exfiltration_detector"
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.11"
+  timeout          = 300
+  memory_size      = 1024
+
+  use_existing_role = true
+  existing_role_arn = var.lab_role_arn
+
+  layers = [aws_lambda_layer_version.exfiltration_deps.arn]
+
+  # Configuración del Trigger S3
+  s3_bucket_arn     = module.logs_s3.bucket_arn
+  s3_bucket_id      = module.logs_s3.bucket_name
+  enable_s3_trigger = true
+  s3_filter_prefix  = "merged-logs/"
+  s3_filter_suffix  = ".csv"
+
+  environment_variables = {
+    MODEL_BUCKET  = module.logs_s3.bucket_name 
+    SNS_TOPIC_ARN = aws_sns_topic.alerts.arn
+  }
+
+  sns_topic_arn = aws_sns_topic.alerts.arn
+
+  tags = var.common_tags
+
+  depends_on = [
+    module.logs_s3,
+    module.lambda_zeek_merger,
+    aws_s3_object.layer_zip # Esperar a que se suba el zip
+  ]
+}
+
+output "sns_alerts_topic_arn" {
+  description = "ARN del tópico SNS para alertas de exfiltración"
+  value       = aws_sns_topic.alerts.arn
+}
