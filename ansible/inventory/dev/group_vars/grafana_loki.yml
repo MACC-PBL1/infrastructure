@@ -1,0 +1,16 @@
+---
+# Loki Configuration
+loki_version: "2.9.3"
+loki_port: 3100
+loki_data_dir: /var/lib/loki
+loki_config_dir: /etc/loki
+loki_retention_period: "168h"  # 7 days
+
+# Grafana Configuration
+grafana_admin_password: "admin"  # Change in production
+grafana_port: 3000
+grafana_datasources_dir: /etc/grafana/provisioning/datasources
+grafana_dashboards_dir: /etc/grafana/provisioning/dashboards
+
+# Network
+vpc_cidr: "10.0.0.0/16"

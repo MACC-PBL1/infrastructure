@@ -10,6 +10,7 @@
   
   roles:
     - cowrie
+    - fluentbit-honeypots
 
 - name: Deploy Dionaea Honeypot
   hosts: popbl-grupo1-dionaea-Honeypot
@@ -18,3 +19,4 @@
 
   roles:
     - dionaea
+    - fluentbit-honeypots

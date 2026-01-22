@@ -92,3 +92,21 @@ variable "existing_role_arn" {
   type        = string
   default     = null
 }
+
+variable "enable_s3_trigger" {
+  description = "Enable S3 trigger for Lambda"
+  type        = bool
+  default     = true
+}
+
+variable "layers" {
+  description = "Lista de ARNs de capas Lambda (para dependencias)"
+  type        = list(string)
+  default     = []
+}
+
+variable "sns_topic_arn" {
+  description = "ARN del tópico SNS para alertas (opcional)"
+  type        = string
+  default     = null
+}

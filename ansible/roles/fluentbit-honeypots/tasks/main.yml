@@ -1,0 +1,32 @@
+- name: Install Fluent Bit prerequisites
+  apt:
+    name:
+      - curl
+      - ca-certificates
+      - gnupg
+    state: present
+
+- name: Install Fluent Bit
+  shell: |
+    curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
+  args:
+    creates: /opt/fluent-bit/bin/fluent-bit
+
+- name: Create Fluent Bit symlink
+  file:
+    src: /opt/fluent-bit/bin/fluent-bit
+    dest: /usr/local/bin/fluent-bit
+    state: link
+    force: yes
+
+- name: Configure Fluent Bit
+  template:
+    src: fluent-bit-honeypot.conf.j2
+    dest: /etc/fluent-bit/fluent-bit.conf
+  notify: Restart Fluent Bit
+  
+- name: Enable and start Fluent Bit service
+  systemd:
+    name: fluent-bit
+    enabled: yes
+    state: restarted

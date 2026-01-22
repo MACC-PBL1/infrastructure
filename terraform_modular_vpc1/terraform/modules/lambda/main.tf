@@ -21,6 +21,8 @@ resource "aws_lambda_function" "this" {
   
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
+  layers = var.layers
+
   # Configuración VPC (si se proporciona)
   dynamic "vpc_config" {
     for_each = var.vpc_config != null ? [var.vpc_config] : []
@@ -53,6 +55,7 @@ resource "aws_lambda_permission" "allow_s3" {
 # 4. S3 Bucket Notification
 # =========================
 resource "aws_s3_bucket_notification" "lambda_trigger" {
+  count  = var.enable_s3_trigger ? 1 : 0
   bucket = var.s3_bucket_id
 
   lambda_function {
@@ -122,7 +125,9 @@ resource "aws_iam_role_policy" "lambda_custom" {
           Effect = "Allow"
           Action = [
             "s3:GetObject",
-            "s3:ListBucket"
+            "s3:ListBucket",
+            "s3:PutObject",
+            "s3:HeadObject"
           ]
           Resource = [
             var.s3_bucket_arn,
@@ -138,6 +143,13 @@ resource "aws_iam_role_policy" "lambda_custom" {
             "ssm:GetParameters"
           ]
           Resource = var.ssm_parameter_arns
+        }
+      ] : [],
+      var.sns_topic_arn != null ? [
+        {
+          Effect = "Allow"
+          Action = "sns:Publish"
+          Resource = var.sns_topic_arn
         }
       ] : []
     )
