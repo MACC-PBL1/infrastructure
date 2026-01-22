@@ -6,7 +6,7 @@ resource "aws_kinesis_firehose_delivery_stream" "this" {
     role_arn   = var.iam_role_arn
     bucket_arn = var.s3_bucket_arn
 
-    buffering_interval = 300
+    buffering_interval = 60
     buffering_size     = 5
 
     compression_format = "UNCOMPRESSED"
