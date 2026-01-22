@@ -19,12 +19,12 @@ db_name            = "appdb"
 peer_vpc_cidr = "10.1.0.0/16"
 
 auth_instance_ips = [
-  "10.1.11.47",
-  "10.1.12.217"
+  "10.1.11.220",
+  "10.1.12.26"
 ]
 
 logs_instance_ips = [
-  "10.1.11.47",
-  "10.1.12.217"
+  "10.1.11.220",
+  "10.1.12.26"
 ]
 lab_role_arn = "arn:aws:iam::512411987939:role/LabRole"
