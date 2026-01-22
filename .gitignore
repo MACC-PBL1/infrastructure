@@ -16,6 +16,19 @@ crash.log
 crash.*.log
 
 ############################################
+# SSL / Secrets (CRÍTICO)
+############################################
+
+# Certificados y claves privadas
+ssl/
+**/ssl/
+*.pem
+*.key
+*.crt
+*.srl
+
+
+############################################
 # Ansible (opcional pero recomendable)
 ############################################
 
