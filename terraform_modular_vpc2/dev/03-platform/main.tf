@@ -310,15 +310,15 @@ module "s3_logs" {
 }
 
 # ============================================
-# Kinesis Firehose - Honeypots
+# Kinesis Firehose - Cowrie
 # ============================================
 module "firehose_honeypots" {
   source = "../../modules/kinesis_firehose"
 
-  stream_name    = "${var.project_name}-honeypots-stream"
+  stream_name    = "${var.project_name}-honeypots-cowrie-stream"
   role_arn       = var.firehose_role_arn
   s3_bucket_arn  = module.s3_logs.bucket_arn
-  s3_prefix      = "honeypots/"
+  s3_prefix      = "cowrie/"
 
   buffering_size     = 5
   buffering_interval = 300
@@ -327,22 +327,22 @@ module "firehose_honeypots" {
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.project_name}-honeypots-firehose"
-      Type = "honeypots"
+      Name = "${var.project_name}-cowrie-firehose"
+      Type = "cowrie"
     }
   )
 }
 
 # ============================================
-# Kinesis Firehose - Microservices
+# Kinesis Firehose - Dionaea
 # ============================================
 module "firehose_microservices" {
   source = "../../modules/kinesis_firehose"
 
-  stream_name    = "${var.project_name}-microservices-stream"
+  stream_name    = "${var.project_name}-honeypots-dionaea-stream"
   role_arn       = var.firehose_role_arn
   s3_bucket_arn  = module.s3_logs.bucket_arn
-  s3_prefix      = "microservices/"
+  s3_prefix      = "dionaea/"
 
   buffering_size     = 5
   buffering_interval = 300
@@ -351,8 +351,8 @@ module "firehose_microservices" {
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.project_name}-microservices-firehose"
-      Type = "microservices"
+      Name = "${var.project_name}-dionaea-firehose"
+      Type = "dionaea"
     }
   )
 }

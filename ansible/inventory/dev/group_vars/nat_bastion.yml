@@ -11,7 +11,6 @@ firehose_zeekflowmeter_name: pi-infra-development-user-zeekflowmeter-firehose
 
 ansible_user: admin
 ansible_ssh_private_key_file: ~/.ssh/labsuser.pem
-
 # NAT necesita forward
 hardening_sysctl:
   net.ipv4.ip_forward: 1
